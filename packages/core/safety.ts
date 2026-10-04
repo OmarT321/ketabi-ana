@@ -193,3 +193,100 @@ export function safeGeneratedText(
   }
   return true;
 }
+
+// ── Explanation post-check (stage 2) ─────────────────────────────────────────
+// The model proposes; the server enforces. Every generated explanation must
+// pass these checks before it is shown or cached; otherwise the written
+// meaning is shown as it is.
+export type ExplanationRejection =
+  | "schema"
+  | "length"
+  | "text_overlap"
+  | "ruling"
+  | "quotation"
+  | "addition"
+  | "omission";
+
+const RULING_WORDS = new Set([
+  "يجوز",
+  "حرام",
+  "واجب",
+  "سنه",
+  "مكروه",
+  "بدعه",
+  "يجب",
+  "حلال",
+  "فرض",
+]);
+// Function words a rephrasing may share with a text without quoting it.
+const FUNCTION_WORDS = new Set([
+  "الله",
+  "من",
+  "في",
+  "على",
+  "علي",
+  "الي",
+  "عن",
+  "ما",
+  "لا",
+  "ولا",
+  "و",
+  "ثم",
+  "الذي",
+  "التي",
+  "هذا",
+  "هذه",
+  "لنا",
+  "لك",
+  "غير",
+  "بعد",
+  "قبل",
+]);
+// Promise or threat (rule 8): an addition unless the written meaning has the word.
+const PROMISE_THREAT = new Set(["الجنه", "جنه", "النار", "نار", "ثواب", "اجر", "عذاب", "عقاب", "يعاقب", "يدخلك"]);
+const QUOTE_MARKS = /[«»"“”„﴿﴾]/;
+const QUOTE_PHRASES =
+  /قال الله|قال تعالي|قال رسول|قال النبي|قال صلي|رواه|في الحديث|في القران|حديث شريف|الايه الكريمه|سوره /;
+
+/** Strips common attached prefixes so «والواجب» matches «واجب». */
+function stems(word: string) {
+  const out = [word];
+  for (const prefix of ["وال", "بال", "فال", "كال", "لل", "ال", "و", "ف"])
+    if (word.startsWith(prefix) && word.length - prefix.length >= 3)
+      out.push(word.slice(prefix.length));
+  return out;
+}
+
+/** Text-only checks on a candidate explanation. The dhikr text is used here to
+ * detect overlap and is never sent to the model. */
+export function checkExplanationText(
+  candidate: string,
+  { text, meaning }: { text: string; meaning: string },
+): ExplanationRejection | null {
+  const cleaned = candidate.replaceAll("{name}", " ").trim();
+  if (cleaned.length < 12 || candidate.length > 700) return "length";
+  const words = normalize(cleaned).split(" ").filter(Boolean);
+  const meaningWords = normalize(meaning).split(" ").filter(Boolean);
+  // Gender and age wording may lengthen a sentence a little; much longer means added content.
+  if (words.length > meaningWords.length * 1.6 + 8) return "addition";
+  if (QUOTE_MARKS.test(cleaned) || QUOTE_PHRASES.test(` ${normalize(cleaned)} `))
+    return "quotation";
+  for (const word of words)
+    if (stems(word).some((s) => RULING_WORDS.has(s))) return "ruling";
+  const inMeaning = new Set(meaningWords.flatMap(stems));
+  for (const word of words)
+    if (stems(word).some((s) => PROMISE_THREAT.has(s) && !inMeaning.has(s)))
+      return "addition";
+  const source = normalize(text).split(" ").filter(Boolean);
+  for (let i = 0; i < words.length; i++)
+    for (let j = 0; j < source.length; j++) {
+      let k = 0;
+      while (words[i + k] && words[i + k] === source[j + k]) k++;
+      if (
+        k >= 2 &&
+        words.slice(i, i + k).some((w) => !FUNCTION_WORDS.has(w))
+      )
+        return "text_overlap";
+    }
+  return null;
+}

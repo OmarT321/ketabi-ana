@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, Check, LoaderCircle } from "lucide-react";
-import type { Lesson, LessonResponse } from "@platform/core/types";
+import type { Gender, Lesson, LessonResponse } from "@platform/core/types";
 import { buildStoryBook, pickSession } from "@platform/core/story";
 import { MAX_AGE, MIN_AGE, scopeNotice } from "@platform/core/content";
 import { Header } from "./site-chrome";
@@ -21,7 +21,8 @@ export default function LearningApp() {
   const [notice, setNotice] = useState(DEFAULT_NOTICE);
   const [name, setName] = useState("");
   const [age, setAge] = useState(6);
-  const [avatar, setAvatar] = useState<"boy" | "girl">("boy");
+  // Declared by the parent; never inferred from the name or a photo.
+  const [gender, setGender] = useState<Gender | null>(null);
   const [book, setBook] = useState<LessonResponse[]>([]);
   const [profile, setProfile] = useState<ReaderProfile | null>(null);
   const [busy, setBusy] = useState(false);
@@ -61,7 +62,7 @@ export default function LearningApp() {
 
   async function createBook(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (generation.current || catalog.length === 0) return;
+    if (generation.current || catalog.length === 0 || !gender) return;
     const selected = pickSession(catalog, previousSession.current);
     const controller = new AbortController();
     generation.current = controller;
@@ -73,7 +74,7 @@ export default function LearningApp() {
         selected.map((lesson) =>
           request<LessonResponse>(
             "/api/lesson",
-            { lessonId: lesson.id, age, avatar },
+            { lessonId: lesson.id, age, gender },
             controller.signal,
           ),
         ),
@@ -87,9 +88,9 @@ export default function LearningApp() {
         );
       }
       setProfile({
-        name: name.trim() || (avatar === "girl" ? "صديقتنا" : "صديقنا"),
+        name: name.trim() || (gender === "girl" ? "صديقتنا" : "صديقنا"),
         age,
-        avatar,
+        gender,
       });
       setBook(entries);
       previousSession.current = selected.map((lesson) => lesson.id);
@@ -243,27 +244,30 @@ export default function LearningApp() {
                       </select>
                     </div>
                   </div>
-                  <fieldset>
-                    <legend>شخصية الكتاب</legend>
+                  <fieldset className="gender-field">
+                    <legend>
+                      الطفل <span>مطلوب</span>
+                    </legend>
                     <div className="avatar-options">
                       {(["boy", "girl"] as const).map((value) => (
-                        <button
-                          type="button"
+                        <label
                           key={value}
-                          aria-pressed={avatar === value}
-                          className={avatar === value ? "selected" : ""}
-                          onClick={() => setAvatar(value)}
+                          className={gender === value ? "selected" : ""}
                         >
+                          <input
+                            type="radio"
+                            name="child-gender"
+                            value={value}
+                            required
+                            checked={gender === value}
+                            onChange={() => setGender(value)}
+                          />
                           <span className="avatar-art">
                             <Scene scene="morning" avatar={value} />
                           </span>
-                          <span>
-                            {value === "boy"
-                              ? "المستكشف الصغير"
-                              : "المستكشفة الصغيرة"}
-                          </span>
-                          {avatar === value && <Check size={17} />}
-                        </button>
+                          <span>{value === "boy" ? "ولد" : "بنت"}</span>
+                          {gender === value && <Check size={17} />}
+                        </label>
                       ))}
                     </div>
                   </fieldset>
@@ -295,7 +299,7 @@ export default function LearningApp() {
                     <button
                       className="button"
                       type="submit"
-                      disabled={catalogBusy || catalog.length === 0 || busy}
+                      disabled={catalogBusy || catalog.length === 0 || busy || !gender}
                     >
                       {busy ? (
                         <>
@@ -328,7 +332,7 @@ export default function LearningApp() {
                 إغلاقها. تجنّبوا كتابة معلومات شخصية في الأسئلة.
               </p>
               <p>
-                لإعداد الكتاب نرسل العمر ورمز النص والشخصية المرسومة. تُرسل
+                لإعداد الكتاب نرسل العمر ورمز النص وجنس الطفل (ولد أو بنت) لصياغة الشرح بالمذكر أو المؤنث. تُرسل
                 الأسئلة المكتوبة لمعالجتها؛ وقد تتلقى خدمة الاستضافة بيانات
                 الاتصال اللازمة للتشغيل والحماية. النسخة المطبوعة تتضمن الاسم إن
                 أُدخل؛ راجعوها قبل مشاركتها.

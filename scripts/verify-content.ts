@@ -9,6 +9,8 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { lessons } from "../packages/core/content";
 import lessonHashes from "../packages/core/data/lesson-hashes.json" with { type: "json" };
+import warmed from "../packages/core/data/explanations.cache.json" with { type: "json" };
+import { checkExplanationText } from "../packages/core/safety";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const failures: string[] = [];
@@ -95,11 +97,36 @@ const forbidden: [string, RegExp][] = [
   ["cookies", /document\.cookie|cookies\(\)\.set/],
   ["file writes", /\b(writeFile|writeFileSync|appendFile|createWriteStream)\b/],
 ];
+// packages/core/log.ts is the single sanctioned logger: one call, typed record, no free text.
+const LOGGER = "packages/core/log.ts";
 for (const file of runtime) {
   const text = readFileSync(join(root, file), "utf8");
-  for (const [label, pattern] of forbidden)
+  for (const [label, pattern] of forbidden) {
+    if (file === LOGGER && label === "console logging") continue;
     if (pattern.test(text)) failures.push(`${label} in runtime code: ${file}`);
+  }
 }
+const logger = readFileSync(join(root, LOGGER), "utf8");
+const loggerCode = logger.replace(/import[^;]+;|\/\*[\s\S]*?\*\/|\/\/.*/g, "");
+if ((loggerCode.match(/console\./g) || []).length !== 1 || /name/i.test(loggerCode))
+  failures.push(`logger must make one call with no name field: ${LOGGER}`);
+
+// 4b. The persistent explanation cache holds only checked text keyed by id, band and gender.
+const WARM_KEYS = ["band", "explanation", "gender", "generatedAt", "id", "meaningSha256", "model"];
+for (const entry of warmed as Record<string, string>[]) {
+  if (Object.keys(entry).sort().join() !== WARM_KEYS.join())
+    failures.push(`unexpected fields in explanations cache: ${entry.id}`);
+  const lesson = lessons.find((l) => l.id === entry.id);
+  if (!lesson) failures.push(`explanation for unknown item: ${entry.id}`);
+  else {
+    const meaning = entry.band === "young" ? lesson.meaning_young : lesson.meaning_older;
+    const reason = checkExplanationText(entry.explanation, { text: lesson.text, meaning });
+    if (reason) failures.push(`cached explanation fails check (${reason}): ${entry.id}/${entry.band}/${entry.gender}`);
+    if (entry.meaningSha256 !== createHash("sha256").update(meaning).digest("hex"))
+      notes.push(`stale cached explanation (meaning changed): ${entry.id}/${entry.band}/${entry.gender}`);
+  }
+}
+notes.push(`explanations cache: ${(warmed as unknown[]).length} of ${lessons.length * 4}`);
 
 // 5. Unit tests are green.
 const tests = spawnSync("npm", ["test", "--silent"], {

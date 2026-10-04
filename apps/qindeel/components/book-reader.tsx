@@ -19,6 +19,7 @@ import {
   sourceLine,
 } from "@platform/core/content";
 import type {
+  Gender,
   Lesson,
   LessonResponse,
   QuestionResponse,
@@ -29,7 +30,7 @@ import { request } from "./client-api";
 export type ReaderProfile = {
   name: string;
   age: number;
-  avatar: "boy" | "girl";
+  gender: Gender;
 };
 type Page =
   | { kind: "text"; entry: LessonResponse; item: number }
@@ -279,7 +280,7 @@ function BookCover({
         <div className="cover-illustration">
           <Scene
             scene={story.items[0]?.lesson.scene ?? "morning"}
-            avatar={profile.avatar}
+            avatar={profile.gender}
           />
         </div>
         {onOpen && (
@@ -298,7 +299,7 @@ function Illustration({
   avatar,
 }: {
   entry: LessonResponse;
-  avatar: ReaderProfile["avatar"];
+  avatar: Gender;
 }) {
   const [failed, setFailed] = useState(false);
   return entry.imageUrl && !failed ? (
@@ -361,7 +362,7 @@ function BookPage({
             </blockquote>
             <p className="source-link">{sourceLine(item.entry.lesson)}</p>
             <div className="story-illustration">
-              <Illustration entry={item.entry} avatar={profile.avatar} />
+              <Illustration entry={item.entry} avatar={profile.gender} />
             </div>
           </>
         )}
@@ -370,11 +371,11 @@ function BookPage({
             <div className="meaning-prose">
               <p>{named(item.entry.explanation, profile.name)}</p>
             </div>
-            {item.entry.mode === "generated" && (
-              <small className="source-note">
-                الشرح مصوغ آلياً من المعنى المدوَّن
-              </small>
-            )}
+            <small className="source-note">
+              {item.entry.mode === "generated"
+                ? "الشرح مصوغ آلياً من المعنى المدوَّن"
+                : "المعنى كما كُتب في المصدر"}
+            </small>
             <QuizCard lesson={item.entry.lesson} print={print} />
           </>
         )}

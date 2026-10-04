@@ -352,6 +352,7 @@ textarea {
   gap: 12px;
 }
 .avatar-options > button,
+.avatar-options > label,
 .pack-options > button {
   display: flex;
   align-items: center;
@@ -365,12 +366,14 @@ textarea {
   text-align: right;
 }
 .avatar-options > button.selected,
+.avatar-options > label.selected,
 .pack-options > button.selected {
   background: #eee8ef;
   border-color: #7e6785;
   color: var(--plum-dark);
 }
-.avatar-options > button > svg {
+.avatar-options > button > svg,
+.avatar-options > label > svg {
   margin-right: auto;
 }
 .avatar-art {
@@ -1401,12 +1404,14 @@ details > summary::marker {
   .pack-options {
     gap: 8px;
   }
-  .avatar-options > button {
+  .avatar-options > button,
+  .avatar-options > label {
     font-size: 10px;
     padding: 9px 7px;
     gap: 6px;
   }
-  .avatar-options > button > svg {
+  .avatar-options > button > svg,
+  .avatar-options > label > svg {
     width: 13px;
     height: 13px;
   }
@@ -1926,4 +1931,24 @@ details > summary::marker {
   margin: 8px 0 18px;
   padding-inline-start: 22px;
   font-size: 1.1rem;
+}
+.avatar-options > label {
+  cursor: pointer;
+  position: relative;
+}
+.avatar-options > label > input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.avatar-options > label:has(input:focus-visible) {
+  outline: 2px solid var(--plum);
+  outline-offset: 2px;
+}
+.gender-field legend span {
+  font-size: 12px;
+  color: var(--muted);
+  margin-inline-start: 6px;
 }

@@ -13,6 +13,7 @@
     "./story": "./story.ts",
     "./server": "./server.ts",
     "./http": "./http.ts",
-    "./safety": "./safety.ts"
+    "./safety": "./safety.ts",
+    "./explain": "./explain.ts"
   }
 }

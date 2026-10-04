@@ -15,7 +15,9 @@
     "db:seed:generate": "tsx scripts/create-seed.ts",
     "verify:content": "tsx scripts/verify-content.ts",
     "content:hashes": "tsx scripts/hash-content.ts",
-    "review:content": "tsx scripts/review-content.ts"
+    "review:content": "tsx scripts/review-content.ts",
+    "warm:explanations": "tsx scripts/warm-explanations.ts",
+    "review:explanations": "tsx scripts/review-explanations.ts"
   },
   "devDependencies": {
     "zod": "4.6.5",

@@ -113,12 +113,7 @@ async function qindeelDemo(page) {
   await pause(page, 850);
   await page.locator("#child-name").pressSequentially("نور", { delay: 180 });
   await page.locator("#child-age").selectOption("8");
-  await click(
-    page,
-    page
-      .locator(".avatar-options button")
-      .filter({ hasText: "المستكشفة الصغيرة" }),
-  );
+  await click(page, page.getByRole("radio", { name: "بنت" }));
   await pause(page, 1300);
   await click(
     page,

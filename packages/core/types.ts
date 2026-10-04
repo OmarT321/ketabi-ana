@@ -6,6 +6,7 @@ export type Review = {
 /** Placeholder for any field the content owner has not supplied yet. */
 export const TODO_REVIEW = "TODO_REVIEW";
 export type AgeBand = "young" | "older";
+export type Gender = "boy" | "girl";
 export type Pose = "standing" | "sitting" | "walking";
 export type SceneName =
   | "sleep"

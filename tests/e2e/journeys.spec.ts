@@ -9,7 +9,7 @@ test("API validates input and rejects cross-origin mutations", async ({
   expect(
     (
       await request.post(`${qindeel}/api/lesson`, {
-        data: { lessonId: "adhkar-waking", age: 6, avatar: "boy", admin: true },
+        data: { lessonId: "adhkar-waking", age: 6, gender: "boy", admin: true },
       })
     ).status(),
   ).toBe(400);
@@ -17,21 +17,21 @@ test("API validates input and rejects cross-origin mutations", async ({
     (
       await request.post(`${qindeel}/api/lesson`, {
         headers: { Origin: "https://invalid.example" },
-        data: { lessonId: "adhkar-waking", age: 6, avatar: "boy" },
+        data: { lessonId: "adhkar-waking", age: 6, gender: "boy" },
       })
     ).status(),
   ).toBe(403);
   expect(
     (
       await request.post(`${qindeel}/api/lesson`, {
-        data: { lessonId: "adhkar-waking", age: 99, avatar: "boy" },
+        data: { lessonId: "adhkar-waking", age: 99, gender: "boy" },
       })
     ).status(),
   ).toBe(400);
   expect(
     (
       await request.post(`${qindeel}/api/lesson`, {
-        data: { lessonId: "adhkar-waking", age: 4, avatar: "boy" },
+        data: { lessonId: "adhkar-waking", age: 4, gender: "boy" },
       })
     ).status(),
   ).toBe(400);
@@ -55,7 +55,8 @@ test("Kitabi Ana: three-item book, text and meaning pages, per-item question, pr
   await expect(page.locator("#child-age option").first()).toHaveAttribute("value", "5");
   await page.locator("#child-name").fill("ليان");
   await page.locator("#child-age").selectOption("11");
-  await page.getByRole("button", { name: "المستكشفة الصغيرة" }).click();
+  await expect(page.getByRole("button", { name: "اصنع كتاب ليان" })).toBeDisabled();
+  await page.getByRole("radio", { name: "بنت" }).check();
   await page.getByRole("button", { name: "اصنع كتاب ليان" }).click();
   const reader = page.locator(".reader-screen");
   const cover = reader.getByTestId("book-cover");
@@ -76,6 +77,7 @@ test("Kitabi Ana: three-item book, text and meaning pages, per-item question, pr
   await expect(textPage.locator(".quiz-card")).toHaveCount(0);
   await expect(meaningPage.locator("h4")).toHaveText("ماذا يعني؟");
   await expect(meaningPage.locator(".meaning-prose")).toHaveText(item!.meaning_older);
+  await expect(meaningPage.locator(".source-note")).toHaveText("المعنى كما كُتب في المصدر");
   await expect(meaningPage.locator(".quiz-question")).toHaveText(item!.question);
   await meaningPage.locator(".answer-options button").nth(1).click();
   await expect(meaningPage.locator(".quiz-feedback")).toContainText(
@@ -132,6 +134,7 @@ test("Kitabi Ana mobile: every page turns without overflow and the next book dif
 }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(qindeel);
+  await page.getByRole("radio", { name: "ولد" }).check();
   await page.getByRole("button", { name: "اصنع كتاب طفلي" }).click();
   await page.getByRole("button", { name: "افتح الكتاب", exact: true }).click();
   const reader = page.locator(".reader-screen");
@@ -158,6 +161,7 @@ test("Kitabi Ana mobile: every page turns without overflow and the next book dif
     fullPage: true,
   });
   await page.getByRole("button", { name: "كتاب جديد" }).click();
+  await page.getByRole("radio", { name: "ولد" }).check();
   await page.getByRole("button", { name: "اصنع كتاب طفلي" }).click();
   await page.getByRole("button", { name: "افتح الكتاب", exact: true }).click();
   const secondBook: string[] = [];

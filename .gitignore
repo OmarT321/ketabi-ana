@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.vercel/
+.env*
+!.env.example
+.codex/
+tmp/
+test-results/
+playwright-report/
+*.tsbuildinfo
+supabase/.temp/
+dist/
+assets/private/
+.understand-anything/
+CLAUDE.local.md
+# Temporary: old content file awaiting manual deletion; remove this line after.
+packages/core/data/lessons.json

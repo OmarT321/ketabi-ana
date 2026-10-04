@@ -1,0 +1,32 @@
+{
+  "name": "kitabi-ana",
+  "description": "كتابي أنا",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:qindeel": "npm run dev --workspace @platform/qindeel",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "playwright test",
+    "db:seed:generate": "tsx scripts/create-seed.ts",
+    "verify:content": "tsx scripts/verify-content.ts",
+    "content:hashes": "tsx scripts/hash-content.ts",
+    "review:content": "tsx scripts/review-content.ts"
+  },
+  "devDependencies": {
+    "zod": "4.6.5",
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "26.6.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "prettier": "3.9.9",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2"
+  },
+  "type": "module"
+}

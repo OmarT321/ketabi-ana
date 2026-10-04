@@ -1,0 +1,10 @@
+node_modules
+.next
+**/.next
+.codex
+tmp
+supabase/seed.sql
+package-lock.json
+**/next-env.d.ts
+supabase/.temp
+test-results

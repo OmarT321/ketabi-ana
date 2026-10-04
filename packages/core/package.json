@@ -1,0 +1,18 @@
+{
+  "name": "@platform/core",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "ai": "7.0.126",
+    "zod": "4.6.5"
+  },
+  "exports": {
+    "./types": "./types.ts",
+    "./content": "./content.ts",
+    "./story": "./story.ts",
+    "./server": "./server.ts",
+    "./http": "./http.ts",
+    "./safety": "./safety.ts"
+  }
+}

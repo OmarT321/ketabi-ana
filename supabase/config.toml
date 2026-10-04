@@ -1,0 +1,5 @@
+project_id = "qindeel"
+
+[functions.platform-quota]
+# This function requires a separate server-only key checked inside the handler.
+verify_jwt = false

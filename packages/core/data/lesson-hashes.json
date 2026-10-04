@@ -1,0 +1,26 @@
+[
+  {
+    "id": "adhkar-waking",
+    "sha256": "b4ff34ea48a57e896dcf351fce693df7399867208421dd512f26ae1f873d6f26",
+    "origin": "حصن الطفل",
+    "recorded": "2026-10-04"
+  },
+  {
+    "id": "adhkar-dressing",
+    "sha256": "fee74f2f426b04ac8040969516379554ed4639b40cd9c8c80461a9fd1c9146ab",
+    "origin": "حصن الطفل",
+    "recorded": "2026-10-04"
+  },
+  {
+    "id": "adhkar-food-before",
+    "sha256": "96617e5bbefe80c78d10772167ebc501f8ffd9b48aa17dbbd27a680d3feda2a5",
+    "origin": "حصن الطفل",
+    "recorded": "2026-10-04"
+  },
+  {
+    "id": "adhkar-food-after",
+    "sha256": "35ef4e8e6963a285a4098bf80f75f09564a8c297c02c45c37ec3fe655545a1e8",
+    "origin": "حصن الطفل",
+    "recorded": "2026-10-04"
+  }
+]

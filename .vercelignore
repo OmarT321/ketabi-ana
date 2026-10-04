@@ -1,0 +1,9 @@
+.codex
+tmp
+test-results
+playwright-report
+**/.env*
+!**/.env.example
+**/.next
+**/node_modules
+supabase/.temp

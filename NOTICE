@@ -1,0 +1,20 @@
+كتابي أنا (Kitabi Ana)
+======================
+
+This repository was separated from a repository it shared with another
+project. All code, data and tests specific to that other project were removed.
+Part of the remaining code originates from the shared repository:
+
+- packages/core (types, http, server, safety, content, story, illustrations)
+- supabase (content and request-quota schema, edge function)
+- scripts, tests, CI workflow and Playwright configuration
+
+Original authorship is recorded in the history of the shared repository.
+See docs/ORIGIN.md.
+
+[PENDING] Attribution wording and licence terms for the shared code have not
+been confirmed with the original author. Replace this line with the agreed text
+before publishing or submitting this repository.
+
+Content: the adhkar texts are taken from the printed product «حصن الطفل»,
+supplied by the content owner. See docs/SOURCES.md.

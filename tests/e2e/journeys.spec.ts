@@ -97,7 +97,6 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
   await expect(page.locator("[data-section]")).toHaveCount(3);
   await page.locator("#child-age").pressSequentially("1a3");
   await expect(page.locator("#child-age")).toHaveValue("61");
-  await expect(page.getByRole("alert")).toHaveText("العمر من ٥ إلى ١٢ سنة");
   await page.locator("#child-age").fill("");
   await page.locator("#child-name").fill("ليان");
   await page.locator("#child-age").fill("11");

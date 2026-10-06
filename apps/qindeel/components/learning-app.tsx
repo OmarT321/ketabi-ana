@@ -24,10 +24,11 @@ export default function LearningApp() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState("");
   const [name, setName] = useState("");
-  // Typed age: digits only (Arabic-Indic digits are read as digits), checked against 5–12.
+  // Typed age: digits only (Arabic-Indic digits are read as digits), any value.
+  // The book is written for 5–12, so the nearest of those is what the book uses.
   const [ageText, setAgeText] = useState("6");
-  const age = Number(ageText);
-  const ageValid = ageText !== "" && age >= MIN_AGE && age <= MAX_AGE;
+  const age = Math.min(MAX_AGE, Math.max(MIN_AGE, Number(ageText)));
+  const ageValid = ageText !== "";
   // Declared by the parent; never inferred from the name or a photo.
   const [gender, setGender] = useState<Gender | null>(null);
   const [book, setBook] = useState<LessonResponse[]>([]);
@@ -326,8 +327,6 @@ export default function LearningApp() {
                         maxLength={2}
                         autoComplete="off"
                         value={ageText}
-                        aria-invalid={!ageValid}
-                        aria-describedby={ageValid ? undefined : "child-age-error"}
                         onChange={(event) =>
                           setAgeText(
                             event.target.value
@@ -336,11 +335,6 @@ export default function LearningApp() {
                           )
                         }
                       />
-                      {!ageValid && (
-                        <small id="child-age-error" role="alert" className="field-error">
-                          {COPY.form.ageRange}
-                        </small>
-                      )}
                     </div>
                   </div>
                   <fieldset className="gender-field">

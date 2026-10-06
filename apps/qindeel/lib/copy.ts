@@ -47,7 +47,6 @@ export const COPY = {
     optional: "اختياري",
     namePlaceholder: "الاسم الأول فقط",
     ageLabel: "العمر",
-    ageRange: "العمر من ٥ إلى ١٢ سنة",
     childLegend: "لمن الكتاب؟",
     boy: "ولد",
     girl: "بنت",

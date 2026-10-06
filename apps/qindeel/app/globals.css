@@ -348,9 +348,6 @@ textarea {
   color: var(--muted);
   line-height: 1.8;
 }
-.form-field .field-error {
-  color: #9b2c2c;
-}
 .avatar-options,
 .pack-options {
   display: grid;

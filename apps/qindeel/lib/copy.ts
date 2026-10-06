@@ -143,8 +143,8 @@ export const COPY = {
   },
 
   review: {
-    /** No source yet: nothing is shown in its place. */
-    sourcePending: "",
+    /** No source yet: shown in the source line's place. */
+    sourcePending: "المصدر قيد التوثيق",
     noticePreview:
       "نسخة تجريبية: النصوص منقولة من منتج «حصن الطفل»، والمعاني والأسئلة لم يراجعها عالم شرعي بعد. اقرؤوها مع طفلكم.",
     noticeReviewed:

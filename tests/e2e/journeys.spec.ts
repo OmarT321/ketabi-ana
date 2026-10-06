@@ -129,10 +129,12 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
   await expect(reader.getByTestId("progress")).toHaveText("الموقف ١ من ٣");
   const textPage = reader.locator(".page-text");
   const meaningPage = reader.locator(".page-meaning");
-  await expect(textPage.locator(".source-link")).toHaveText("");
   const shown = (await textPage.locator(".sacred-text").innerText()).trim();
   const item = adhkar.find((x) => x.text === shown);
   expect(item, "text matches the content file exactly").toBeTruthy();
+  await expect(textPage.locator(".source-link")).toHaveText(
+    item!.source === "TODO_REVIEW" ? "المصدر قيد التوثيق" : `${item!.source} · ${item!.grade}`,
+  );
   await expect(textPage.locator("h4")).toHaveText(item!.top_layer.title);
   if (item!.dua_layer) {
     // The owner's layer is on top, its alt is the pack's text, and the CSS card is off.

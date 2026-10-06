@@ -80,6 +80,12 @@ test("canonical lesson fingerprints remain exact", () => {
       p.sha256,
     );
 });
+// Source and grade as the owner documented them (docs/SOURCES.md); anything else stays TODO_REVIEW.
+const DOCUMENTED: Record<string, { source: string; grade: string }> = {
+  "adhkar-waking": { source: "رواه البخاري ومسلم", grade: "صحيح" },
+  "adhkar-dressing": { source: "رواه أبو داود والترمذي", grade: "حسن" },
+  "adhkar-food-after": { source: "رواه أبو داود والترمذي وابن ماجه", grade: "صحيح" },
+};
 test("demo scope: 4 adhkar in 3 situations, empty manasik pack, no invented review or source", () => {
   assert.equal(packs.adhkar.length, 4);
   assert.equal(new Set(packs.adhkar.map((x) => x.situation)).size, 3);
@@ -89,9 +95,13 @@ test("demo scope: 4 adhkar in 3 situations, empty manasik pack, no invented revi
     assert.equal(item.review.status, "pending");
     assert.equal(item.review.reviewer, null);
     assert.equal(item.review.date, null);
-    assert.equal(item.source, "TODO_REVIEW");
-    assert.equal(item.grade, "TODO_REVIEW");
-    assert.equal(sourceLine(item), SOURCE_PENDING);
+    const documented = DOCUMENTED[item.id];
+    assert.equal(item.source, documented?.source ?? "TODO_REVIEW");
+    assert.equal(item.grade, documented?.grade ?? "TODO_REVIEW");
+    assert.equal(
+      sourceLine(item),
+      documented ? `${documented.source} · ${documented.grade}` : SOURCE_PENDING,
+    );
     assert.equal(item.hint_chips.length, 3);
     assert.ok(!("answer" in item), "the question step neither corrects nor marks wrong");
     assert.ok(item.top_layer.title.length > 0);

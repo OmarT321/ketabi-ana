@@ -10,6 +10,8 @@
 
 السبب أن الوقت المتاح يومان، والهدف تجربة كاملة لا محتوى كاملاً. والبنية لا تتغير بإضافة المحتوى: حزمتان بالصيغة نفسها في `packages/core/data/packs/`، فإضافة نص عمل محتوى لا عمل برمجي. ويُبلغ `npm run verify:content` عن أي فرق بين العدد الفعلي والمعلَن، دون أن يُفشل البناء.
 
+**حدّ الطلبات في هذه النسخة:** إن لم يُضبط `SUPABASE_URL` يعمل الحد في ذاكرة الخادم: 30 طلباً في الدقيقة لكل زائر، لكل نسخة خادم على حدة، وليس مشتركاً بينها ولا يومياً. يكفي هذا والتوليد معطّل لأن الطلب لا يكلّف شيئاً. وقبل تشغيل `AI_ENABLED=true` ضعوا سقفاً للإنفاق في لوحتي Gateway وfal، أو اضبطوا Supabase ليصير الحد مشتركاً.
+
 ## حدود المنتج
 
 - لا يفتي، ولا يفسّر، ولا يعلّم أحكاماً. يعرض النص كما ورد، ومعناه كما كتبه فريق المشروع، ويرفض ما سوى ذلك ويحيل إلى الوالدين أو أهل العلم.
@@ -80,7 +82,7 @@ npx playwright install chromium && npm run test:e2e
 
 `CONTENT_MODE` (`preview` أو `reviewed`)، `AI_ENABLED`، `AI_IMAGES_ENABLED`، `AI_TEXT_MODEL`، `AI_VISION_MODEL`، `FAL_KEY`، `FAL_REFERENCE_MODEL`، `FAL_EDIT_MODEL`، `FAL_BACKGROUND_MODEL`، `AI_GATEWAY_API_KEY`، `SUPABASE_URL`، `SUPABASE_PUBLISHABLE_KEY`، `INTERNAL_API_TOKEN`.
 
-في التطوير يعمل محدِّد الطلبات في الذاكرة. ومع `NODE_ENV=production` تُرجع نقطتا `/api/lesson` و`/api/question` الرمز 503 ما لم يُضبط `SUPABASE_URL` و`INTERNAL_API_TOKEN` لخدمة حصص عاملة.
+بلا `SUPABASE_URL` يعمل حدّ الطلبات في الذاكرة، في التطوير والإنتاج. ومع `SUPABASE_URL` يلزم `INTERNAL_API_TOKEN` أيضاً، وإلا تُرجع نقاط الـAPI الرمز 503.
 
 ## البنية
 

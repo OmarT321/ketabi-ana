@@ -202,3 +202,18 @@ test("request validation rejects malformed, extra fields, origin and oversized b
   ])
     await assert.rejects(() => body(request, schema), HttpError);
 });
+
+test("without SUPABASE_URL production falls back to the in-memory limit, not 503", async () => {
+  const { limit } = await import("../packages/core/http");
+  const saved = { node: process.env.NODE_ENV, url: process.env.SUPABASE_URL };
+  Object.assign(process.env, { NODE_ENV: "production" });
+  delete process.env.SUPABASE_URL;
+  try {
+    const request = () => new Request("http://localhost/api/lesson", { method: "POST" });
+    for (let i = 0; i < 30; i++) await limit(request());
+    await assert.rejects(limit(request()), (error: { status?: number }) => error.status === 429);
+  } finally {
+    Object.assign(process.env, { NODE_ENV: saved.node });
+    if (saved.url !== undefined) process.env.SUPABASE_URL = saved.url;
+  }
+});

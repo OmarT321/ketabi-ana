@@ -91,8 +91,10 @@ export async function limit(request: Request) {
       if (process.env.NODE_ENV === "production")
         throw new HttpError(503, COPY.service.unavailable);
     }
-  } else if (process.env.NODE_ENV === "production")
+  } else if (url && process.env.NODE_ENV === "production")
+    // SUPABASE_URL without INTERNAL_API_TOKEN is a broken setup, not a choice.
     throw new HttpError(503, COPY.service.notReady);
+  // No SUPABASE_URL: the in-memory limit below, per server instance, not shared.
   const now = Date.now();
   for (const [key, bucket] of localBuckets)
     if (bucket.until <= now) localBuckets.delete(key);

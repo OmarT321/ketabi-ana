@@ -2111,12 +2111,14 @@ details > summary::marker {
 /* Scene picture, by layout only (the generation prompt is untouched):
    - it starts --scene-top below the page top (card end + at least 4% of the page),
    - sits on the bottom edge, at most --scene-width of the page wide,
-   - shows the picture from its top down to --scene-crop of its height (mid-shin),
-     so the legs leave the frame and the child reads larger. */
+   - shows --scene-crop of the picture's height (variant C, owner's choice), so the
+     child is cut at the waist and reads larger;
+   - --scene-shift moves that window down the picture (object-position) for a pose
+     whose child sits lower in the frame, so the cut still falls at the waist. */
 .book-reader .story-illustration {
   --scene-top: 54%;
   --scene-width: 92%;
-  --scene-crop: 0.8;
+  --scene-crop: 0.68;
   position: absolute;
   top: var(--scene-top);
   bottom: 0;
@@ -2151,11 +2153,16 @@ details > summary::marker {
   max-width: var(--scene-width);
   aspect-ratio: 880 / calc(1184 * var(--scene-crop));
   object-fit: cover;
-  object-position: top;
+  object-position: 50% var(--scene-shift, 0%);
   border-radius: 0;
   box-shadow: none;
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 5%);
   mask-image: linear-gradient(to bottom, transparent, #000 5%);
+}
+/* A standing child's waist is above the window's end even at the top (0%), so it
+   stays there; a sitting child's lap is lower, so its window moves down. */
+.story-illustration > .scene-art[data-pose="sitting"] {
+  --scene-shift: 16%;
 }
 .scene-composite {
   position: relative;

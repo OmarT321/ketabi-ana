@@ -343,7 +343,13 @@ function Illustration({
   if (image?.mode === "generated" && !failed)
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img className="scene-art" src={image.url} alt={label} onError={() => setFailed(true)} />
+      <img
+        className="scene-art"
+        data-pose={entry.lesson.pose}
+        src={image.url}
+        alt={label}
+        onError={() => setFailed(true)}
+      />
     );
   if (image?.mode === "composite" && !failed)
     // Approved drawn background with the generated child laid over it.

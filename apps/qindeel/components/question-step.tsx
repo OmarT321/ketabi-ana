@@ -68,36 +68,34 @@ export function QuestionStep({
           ))}
         </div>
       )}
-      {band === "older" && (
-        <form
-          className="step-reply"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const text = maskName(draft.trim(), name);
-            if (text) onReply({ kind: "text", text });
-          }}
-        >
-          <p className="step-warning" id="reply-warning">
-            {REPLY_WARNING}
-          </p>
-          <label htmlFor="step-reply">
-            {COPY.step.replyLabel} <span>{COPY.form.optional}</span>
-          </label>
-          <textarea
-            id="step-reply"
-            value={draft}
-            maxLength={MAX_REPLY_LENGTH}
-            rows={3}
-            autoComplete="off"
-            aria-describedby="reply-warning"
-            onChange={(event) => setDraft(event.target.value)}
-          />
-          <button type="submit" className="button" disabled={!draft.trim()}>
-            {COPY.step.submit}
-            <ArrowLeft size={18} />
-          </button>
-        </form>
-      )}
+      <form
+        className="step-reply"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const text = maskName(draft.trim(), name);
+          if (text) onReply({ kind: "text", text });
+        }}
+      >
+        <p className="step-warning" id="reply-warning">
+          {REPLY_WARNING}
+        </p>
+        <label htmlFor="step-reply">
+          {COPY.step.replyLabel} <span>{COPY.form.optional}</span>
+        </label>
+        <textarea
+          id="step-reply"
+          value={draft}
+          maxLength={MAX_REPLY_LENGTH}
+          rows={3}
+          autoComplete="off"
+          aria-describedby="reply-warning"
+          onChange={(event) => setDraft(event.target.value)}
+        />
+        <button type="submit" className="button" disabled={!draft.trim()}>
+          {COPY.step.submit}
+          <ArrowLeft size={18} />
+        </button>
+      </form>
       <div className="step-actions">
         <button type="button" onClick={() => onReply({ kind: "none" })}>
           {COPY.step.dontKnow}

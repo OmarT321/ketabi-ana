@@ -34,7 +34,7 @@ export const STEP_QUESTION: Record<AgeBand, string> = COPY.step.question;
 /** Ready replies shown in the step: none until the owner's chips arrive. */
 export const hintChipsFor = (lesson: Lesson) =>
   lesson.hint_chips_ready ? lesson.hint_chips : [];
-/** Typed replies are offered to the older band only. */
+/** Typed replies: offered to every age. */
 export const MAX_REPLY_LENGTH = 200;
 
 export const isPlaceholder = (value: string) => value === TODO_REVIEW;

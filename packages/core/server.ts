@@ -169,7 +169,7 @@ async function explanationFor(
   return pending;
 }
 /** Turns the child's reply into text the model may see, or nothing.
- * A typed reply is accepted from the older band only, and must pass both checks
+ * A typed reply is accepted from every age, and must pass both checks
  * here, on the server, before it can go anywhere: a crisis reply never leaves
  * the server, and a restricted one is treated as no reply. */
 export function resolveReply(
@@ -181,7 +181,7 @@ export function resolveReply(
     const chip = hintChipsFor(lesson)[reply.index];
     return chip ? { text: chip } : null;
   }
-  if (reply.kind !== "text" || band !== "older") return null;
+  if (reply.kind !== "text") return null;
   const text = reply.text.trim();
   if (!text || text.length > MAX_REPLY_LENGTH) return null;
   if (isCrisis(text)) return { crisis: true };

@@ -155,8 +155,8 @@ test("a restricted reply is treated as no reply", () => {
   assert.equal(resolveReply(waking, "older", { kind: "text", text: "هل يجوز أن أنام بدون ذكر؟" }), null);
 });
 
-test("typed replies are accepted from the older band only", () => {
-  assert.equal(resolveReply(waking, "young", { kind: "text", text: NEAR }), null);
+test("typed replies are accepted from every age", () => {
+  assert.deepEqual(resolveReply(waking, "young", { kind: "text", text: NEAR }), { text: NEAR });
   assert.deepEqual(resolveReply(waking, "older", { kind: "text", text: NEAR }), { text: NEAR });
 });
 

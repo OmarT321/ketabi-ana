@@ -50,14 +50,14 @@ test("API validates input and rejects cross-origin mutations", async ({
   ).toBe(400);
 });
 
-/** Answers the three question steps: the young band sees only «ما أعرف» and «تخطّي». */
+/** Answers the three question steps: the reply field is optional at every age. */
 async function answerSteps(page: import("@playwright/test").Page, young: boolean) {
   for (let i = 0; i < 3; i++) {
     const step = page.getByTestId("question-step");
     await expect(step.getByTestId("step-progress")).toHaveText(
       `سؤال ${(i + 1).toLocaleString("ar-SA")} من ٣`,
     );
-    if (young) await expect(step.locator("textarea")).toHaveCount(0);
+    if (young) await expect(step.locator("textarea")).toHaveCount(1);
     await step.getByRole("button", { name: i % 2 ? "ما أعرف" : "تخطّي" }).click();
   }
 }

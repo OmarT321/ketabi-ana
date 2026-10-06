@@ -15,7 +15,7 @@
     "scene": "morning",
     "scene_mode": "generated",
     "top_layer": {
-      "image": "top-waking.png",
+      "image": null,
       "title": "عند الاستيقاظ من النوم نقول:"
     },
     "dua_layer": "dua-waking.png",

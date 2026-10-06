@@ -2331,3 +2331,7 @@ details > summary::marker {
 .dua-source {
   margin: 0;
 }
+.cover-top {
+  object-fit: fill;
+  z-index: 1;
+}

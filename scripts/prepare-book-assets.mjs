@@ -1,10 +1,6 @@
-// Prepares the top layers in apps/qindeel/public/book from the owner's source
-// file (read only, never modified). Run once: node scripts/prepare-book-assets.mjs "<source folder>"
-//  - top-waking.png: the source layer with two areas cleared:
-//      the word «الطفل» under «حِصنُ» (the child's name is written there by the app), and
-//      the baked text card (the dhikr text must come from the content file, and the
-//      card is drawn in CSS).
-//  - top-logo.png: the logo «حِصنُ» alone, for pages whose top layer has not arrived.
+// Prepares top-logo.png in apps/qindeel/public/book from the owner's source file
+// (read only, never modified): the logo «حِصنُ» alone, for pages that have no dua
+// layer. Run once: node scripts/prepare-book-assets.mjs "<source folder>"
 import path from "node:path";
 import sharp from "sharp";
 
@@ -25,6 +21,5 @@ const card = (_x, y) => y >= 690;
 const title = (_x, y) => y >= 500 && y < 690;
 const save = (buffer, file) =>
   sharp(buffer, { raw: { width, height, channels } }).png({ compressionLevel: 9 }).toFile(path.join(out, file));
-await save(clear(data, (x, y) => name(x, y) || card(x, y)), "top-waking.png");
 await save(clear(data, (x, y) => name(x, y) || card(x, y) || title(x, y)), "top-logo.png");
-console.log("written top-waking.png and top-logo.png");
+console.log("written top-logo.png");

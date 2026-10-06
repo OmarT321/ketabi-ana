@@ -10,7 +10,9 @@ import {
   POSE_PRESET,
   SAME_CHILD,
   SAME_COLORS,
+  SCENE_NEGATIVE,
   SCENE_POSE,
+  STYLE,
   seedFor,
   type ImageDeps,
 } from "../packages/core/illustrations";
@@ -148,6 +150,19 @@ test("scenes repeat the outfit with the same colours and keep the hands closed o
     assert.ok(c.prompt!.includes(`${SAME_CHILD}, ${SAME_COLORS}.`));
     assert.ok(c.prompt!.includes(`Pose: ${SCENE_POSE[book[i].pose]}`));
   });
+});
+
+test("every picture uses the style text; the dressing scene alone adds its negatives", async () => {
+  const dressing = lessons.find((l) => l.scene === "home")!;
+  const { deps, calls } = fakeDeps();
+  await illustrateBook({ ...input, lessons: [...book.filter((l) => l !== dressing), dressing] }, deps);
+  for (const c of calls.filter((c) => c.prompt)) {
+    assert.ok(c.prompt!.startsWith(STYLE));
+    assert.ok(!/flat cartoon|clean simple shapes|soft cel shading/i.test(c.prompt!.split(" Avoid:")[0].replace(STYLE, "")));
+    assert.equal(c.prompt!.includes(SCENE_NEGATIVE.home!), c.op === "withReference" && c.prompt!.includes("wardrobe and a small plant"));
+  }
+  assert.ok(calls.some((c) => c.prompt?.includes(SCENE_NEGATIVE.home!)));
+  assert.ok(outfitPreset("girl").includes("scarf in dusty pink"));
 });
 
 test("no verdict from the same-child comparison keeps the picture and redoes nothing", async () => {

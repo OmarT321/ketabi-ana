@@ -12,7 +12,7 @@ const OUTFIT_TEXT: Record<Outfit, string> = {
   BOY_THOBE:
     "a plain white thobe reaching the ankles, no embroidery, no headwear; flat sandals",
   GIRL_DAILY:
-    "a loose long-sleeved tunic in [COLOR] over loose trousers, hair covered with a simple soft scarf, whole face visible",
+    "a loose long-sleeved tunic in [COLOR] over loose trousers, hair covered with a simple soft scarf in [COLOR], whole face visible",
   BOY_DAILY: "a plain long-sleeved shirt in [COLOR] over loose trousers",
 };
 /** One outfit and one colour per book, so every picture shows the same clothes. */
@@ -32,7 +32,7 @@ export const POSE_PRESET: Record<Pose, string> = {
 /** The approved negative list, split (scene decision 3) into the part that
  * applies to every image and the part that applies only to a child on white. */
 export const NEGATIVE_COMMON =
-  "nun, nun habit, wimple, white forehead band, stiff veil, black and white habit, cross, rosary, crucifix, church, joined palms, interlocked fingers, praying hands pressed together, niqab, face covering, visible hair strands, mosque, minaret, dome, Kaaba, holy site, Quran, open book with text, arabic calligraphy, any text, any letters, 3D render, photorealistic, deformed hands, extra fingers, four fingers, missing fingers, fused fingers, malformed hands, distorted face, adult, multiple children, watermark, logo";
+  "nun, nun habit, wimple, white forehead band, stiff veil, black and white habit, cross, rosary, crucifix, church, joined palms, interlocked fingers, praying hands pressed together, niqab, face covering, visible hair strands, mosque, minaret, dome, Kaaba, holy site, Quran, open book with text, arabic calligraphy, any text, any letters, 3D render, photorealistic, flat vector art, cel shading, hard outlines, 2D flat illustration, sticker style, clip art, coloring book, low detail, deformed hands, extra fingers, four fingers, missing fingers, fused fingers, malformed hands, distorted face, adult, multiple children, watermark, logo";
 export const NEGATIVE_WHITE_BACKGROUND =
   "background scenery, floor, furniture, props, shadow on background";
 export const SAME_CHILD = "same child, same face, same clothing as the reference";
@@ -47,8 +47,11 @@ export const SCENE_POSE: Record<Pose, string> = {
 };
 /** Added to every scene after the wardrobe (owner's decision). */
 export const SAME_COLORS = "same clothing colors as the reference image";
+/** The picture style (owner's text, letter for letter). */
+export const STYLE =
+  "Soft semi-realistic 2.5D digital painting, children's storybook illustration style. Rendered with volumetric lighting, gentle rim light, soft shadows and subtle depth of field. Smooth painterly shading with visible light falloff, not flat colors and not cel shading. Stylized child proportions with large expressive eyes, soft rounded features, warm realistic skin tones and natural hair strands. Richly detailed environment with real perspective and depth. Warm cinematic mood, polished and professional, high detail.";
 const wardrobeAndPose = (gender: Gender, band: AgeBand, pose: string) =>
-  `Flat cartoon illustration of a ${gender === "girl" ? "GIRL" : "BOY"} aged ${childAge(band)}, clean simple shapes, soft cel shading, friendly rounded proportions, warm and calm mood. Preserve the same child's facial features from the reference. Wardrobe (exact, do not vary): ${outfitPreset(gender)} Pose: ${pose} Expression: calm and content, gentle smile, eyes open.`;
+  `${STYLE} Illustration of a ${gender === "girl" ? "GIRL" : "BOY"} aged ${childAge(band)}, friendly rounded proportions, warm and calm mood. Preserve the same child's facial features from the reference. Wardrobe (exact, do not vary): ${outfitPreset(gender)} Pose: ${pose} Expression: calm and content, gentle smile, eyes open.`;
 // flux-pro/kontext takes no negative-prompt field, so the list goes in the prompt.
 const avoid = (...lists: string[]) => ` Avoid: ${lists.join(", ")}.`;
 
@@ -90,11 +93,16 @@ const SCENE_TEXT: Partial<Record<SceneName, string>> = {
   travel: "buckled safely in the passenger seat of a family car, countryside outside",
   home: "in a calm family room at home beside a wardrobe and a small plant",
 };
+/** Added to one scene's negative list only (owner's decision): the dressing scene
+ * shows hanging clothes, where the model tends to draw marks that read as text. */
+export const SCENE_NEGATIVE: Partial<Record<SceneName, string>> = {
+  home: "clothing labels, price tags, brand logos, signage, printed patterns with letters",
+};
 /** Second wording (scene decision 3), awaiting the owner's approval: the same
  * wardrobe, pose and expression, with the white-background line replaced by the scene. */
 export const scenePrompt = (gender: Gender, band: AgeBand, pose: Pose, scene: SceneName) =>
   `${wardrobeAndPose(gender, band, SCENE_POSE[pose])} ${SAME_CHILD}, ${SAME_COLORS}. Entire body visible head to feet, the child in the lower middle of the picture, ${SCENE_TEXT[scene]}. Portrait 3:4, soft even lighting, storybook picture with simple background shapes.` +
-  avoid(NEGATIVE_COMMON);
+  avoid(NEGATIVE_COMMON, ...(SCENE_NEGATIVE[scene] ? [SCENE_NEGATIVE[scene]] : []));
 
 // ── Gates ───────────────────────────────────────────────────────────────────
 /** A whole scene may be generated only for scene_mode "generated" and an

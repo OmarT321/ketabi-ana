@@ -1,4 +1,5 @@
 import test from "node:test";
+import { warmedExplanation } from "../packages/core/explain";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import {
@@ -116,7 +117,7 @@ test("content fields are read-only at runtime", () => {
   }, TypeError);
   assert.ok(Object.isFrozen(lessons));
 });
-test("age bands: 5–8 young, 9–12 older; text unchanged, meaning shown as written", async () => {
+test("age bands: 5–8 young, 9–12 older; text unchanged, the base explanation shown", async () => {
   assert.equal(ageBand(5), "young");
   assert.equal(ageBand(8), "young");
   assert.equal(ageBand(9), "older");
@@ -126,9 +127,11 @@ test("age bands: 5–8 young, 9–12 older; text unchanged, meaning shown as wri
       older = await getLesson(lesson.id, 9, "girl");
     assert.equal(young?.lesson.text, lesson.text);
     assert.equal(older?.lesson.text, lesson.text);
-    assert.equal(young?.explanation, lesson.meaning_young);
-    assert.equal(older?.explanation, lesson.meaning_older);
-    assert.equal(young?.mode, "prepared");
+    // Base explanation: the warmed one when cached, else the meaning as written.
+    const warmYoung = warmedExplanation(lesson, "young", "boy");
+    assert.equal(young?.explanation, warmYoung ?? lesson.meaning_young);
+    assert.equal(older?.explanation, warmedExplanation(lesson, "older", "girl") ?? lesson.meaning_older);
+    assert.equal(young?.mode, warmYoung ? "generated" : "prepared");
   }
 });
 test("invalid lesson and age are rejected", async () => {

@@ -4,11 +4,14 @@ import { lessons, meaningFor, STEP_QUESTION } from "../packages/core/content";
 import { checkExplanationText } from "../packages/core/safety";
 import { getLesson, resolveReply } from "../packages/core/server";
 import { maskName } from "../packages/core/story";
-import type { ExplainDeps, JudgeInput, RewriteInput } from "../packages/core/explain";
+import { warmedExplanation, type ExplainDeps, type JudgeInput, type RewriteInput } from "../packages/core/explain";
 import type { ChildReply, Lesson } from "../packages/core/types";
 
 const waking = lessons.find((l) => l.id === "adhkar-waking")!;
 const older = meaningFor(waking, "older");
+// Without a usable reply the book shows the base explanation: the warmed one
+// when packages/core/data/explanations.cache.json has it, else the meaning as written.
+const base = warmedExplanation(waking, "older", "boy") ?? older;
 const NEAR = "لأن الله أعطانا يوماً جديداً";
 const FAR = "لأن السرير مريح";
 const AFFIRMED = `صدقت يا {name}، ${older}`;
@@ -56,7 +59,7 @@ const personalCalls = (rewrites: RewriteInput[]) => rewrites.filter((r) => r.chi
 test("no reply: the base explanation, and nothing personal reaches the model", async () => {
   const { deps, rewrites } = fake();
   const { result } = await withAi(() => ask({ kind: "none" }, deps));
-  assert.equal(result?.explanation, older);
+  assert.equal(result?.explanation, base);
   assert.equal(personalCalls(rewrites).length, 0);
 });
 
@@ -110,20 +113,20 @@ test("the reply is kept nowhere: not cached, not logged", async () => {
   ]);
   const secret = "لأن جارنا أحمد قال لي ذلك";
   const { result, warnings } = await withAi(() => ask({ kind: "text", text: secret }, deps));
-  assert.equal(result?.explanation, older, "rejected twice: the base explanation");
+  assert.equal(result?.explanation, base, "rejected twice: the base explanation");
   assert.equal(warnings.length, 2, "both rejections logged");
   for (const line of warnings) assert.ok(!line.includes(secret) && !line.includes("جارنا"), "no reply text logged");
   // A later request without a reply never sees the personalized text.
   const { deps: plain } = fake();
   const { result: later } = await withAi(() => ask({ kind: "none" }, plain));
-  assert.equal(later?.explanation, older);
+  assert.equal(later?.explanation, base);
 });
 
 test("a broken schema from the model falls back to the base explanation", async () => {
   for (const bad of [{ explanation: AFFIRMED, extra: 1 }, { text: AFFIRMED }, "plain text", null]) {
     const { deps } = fake([bad, bad]);
     const { result } = await withAi(() => ask({ kind: "text", text: NEAR }, deps));
-    assert.equal(result?.explanation, older);
+    assert.equal(result?.explanation, base);
   }
 });
 
@@ -137,7 +140,7 @@ test("a provider failure with a reply falls back to the base explanation", async
     },
   };
   const { result } = await withAi(() => ask({ kind: "text", text: NEAR }, failing));
-  assert.equal(result?.explanation, older);
+  assert.equal(result?.explanation, base);
 });
 
 test("a crisis reply never leaves the server, and the crisis message is returned", async () => {
@@ -145,7 +148,7 @@ test("a crisis reply never leaves the server, and the crisis message is returned
   const { result } = await withAi(() => ask({ kind: "text", text: "أريد أن أؤذي نفسي" }, deps));
   assert.equal(personalCalls(rewrites).length, 0);
   assert.ok(result?.replyCrisis && result.replyCrisis.length > 20);
-  assert.equal(result?.explanation, older);
+  assert.equal(result?.explanation, base);
 });
 
 test("a restricted reply is treated as no reply", () => {

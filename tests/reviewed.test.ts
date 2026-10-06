@@ -1,4 +1,5 @@
 import test from "node:test";
+import { warmedExplanation } from "../packages/core/explain";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { lessons, isApproved } from "../packages/core/content";
@@ -74,7 +75,10 @@ test("an approved item drops the review badge and shows its approved meaning", a
     const result = await getLesson(payload.id, 6, "boy");
     assert.equal(result?.lesson.review.status, "approved");
     assert.ok(result && isApproved(result.lesson));
-    assert.equal(result?.explanation, payload.meaning_young);
+    assert.equal(
+      result?.explanation,
+      warmedExplanation(result!.lesson, "young", "boy") ?? payload.meaning_young,
+    );
     assert.equal(isApproved(lessons[0]), false, "the packaged file stays pending");
   } finally {
     globalThis.fetch = originalFetch;

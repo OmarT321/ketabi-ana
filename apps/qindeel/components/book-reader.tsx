@@ -297,7 +297,7 @@ function BookCover({
     <article className="book-cover" data-testid="book-cover">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="leaf-layer" src={`${BOOK_ART}/cover-bg.jpg`} alt="" />
-      {/* Owner's gradient: right above the background, right under the name. */}
+      {/* Owner's gradient: above the child (fades its feet), under the name (z-index in CSS). */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="leaf-layer cover-top" src={`${BOOK_ART}/cover-top.png`} alt="" />
       <h4 className="sr-only">{named(story.title, profile.name)}</h4>

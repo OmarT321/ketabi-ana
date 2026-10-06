@@ -2108,13 +2108,19 @@ details > summary::marker {
   font-size: 2.6cqw;
   color: rgb(255 255 255 / 80%);
 }
-/* Scene picture: below the card, sitting on the bottom edge, 78% wide, no frame. */
+/* Scene picture, by layout only (the generation prompt is untouched):
+   - it starts --scene-top below the page top (card end + at least 4% of the page),
+   - sits on the bottom edge, at most --scene-width of the page wide,
+   - shows the picture from its top down to --scene-crop of its height (mid-shin),
+     so the legs leave the frame and the child reads larger. */
 .book-reader .story-illustration {
+  --scene-top: 54%;
+  --scene-width: 92%;
+  --scene-crop: 0.8;
   position: absolute;
+  top: var(--scene-top);
   bottom: 0;
-  inset-inline-start: 11%;
-  width: 78%;
-  height: 52%;
+  inset-inline: 0;
   margin: 0;
   max-width: none;
   z-index: 2;
@@ -2123,9 +2129,8 @@ details > summary::marker {
   justify-content: center;
 }
 .story-illustration > .scene,
-.story-illustration > .scene-art,
 .story-illustration > .scene-composite {
-  width: 100%;
+  width: 78%;
   max-height: 100%;
   border-radius: 0;
   box-shadow: none;
@@ -2133,6 +2138,24 @@ details > summary::marker {
   object-position: bottom;
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 16%);
   mask-image: linear-gradient(to bottom, transparent, #000 16%);
+}
+/* Without a dua layer the CSS card and its source line end lower. */
+.book-reader .paper-leaf:not(.has-dua) .story-illustration {
+  --scene-top: 58%;
+}
+/* Generated scene (880×1184): the box keeps the cropped picture's shape and is as
+   large as the space allows; the picture is cut at the bottom, never at the head. */
+.story-illustration > .scene-art {
+  height: 100%;
+  width: auto;
+  max-width: var(--scene-width);
+  aspect-ratio: 880 / calc(1184 * var(--scene-crop));
+  object-fit: cover;
+  object-position: top;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 5%);
+  mask-image: linear-gradient(to bottom, transparent, #000 5%);
 }
 .scene-composite {
   position: relative;
@@ -2361,7 +2384,16 @@ details > summary::marker {
 .dua-source {
   margin: 0;
 }
+/* Cover order: cover-bg, the child, cover-top (its gradient fades the feet into
+   the background), then the name and the line. */
 .cover-top {
   object-fit: fill;
+  z-index: 2;
+}
+.cover-child {
   z-index: 1;
+}
+.cover-name,
+.cover-line {
+  z-index: 3;
 }

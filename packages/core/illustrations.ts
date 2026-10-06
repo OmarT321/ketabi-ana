@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { generateText, Output } from "ai";
 import { z } from "zod";
 import type { AgeBand, Gender, Lesson, Pose, SceneName } from "./types";
+import { logImageCheckFailure } from "./log";
 
 // ── Approved prompt parts (stage 4.4). Do not reword. ───────────────────────
 export type Outfit = "GIRL_HIJAB" | "BOY_THOBE" | "GIRL_DAILY" | "BOY_DAILY";
@@ -290,17 +291,24 @@ export const falDeps: ImageDeps = {
       maxRetries: 0,
       abortSignal: AbortSignal.timeout(15000),
     });
-    return (
-      output.faceFullyVisible &&
-      // The girl's outfit covers the hair; the boy's does not.
-      (gender === "boy" || !output.hairShowing) &&
-      !output.writingOrLetters &&
-      output.clothingCoversArmsAndLegs &&
-      output.fullBodyVisible &&
-      output.fiveFingersEachHand &&
-      !output.anotherPerson &&
-      !output.sacredPlace
-    );
+    // Same rule as before, listed per question so a failure says which one.
+    const failed = (
+      [
+        ["faceFullyVisible", !output.faceFullyVisible],
+        // The girl's outfit covers the hair; the boy's does not.
+        ["hairShowing", gender === "girl" && output.hairShowing],
+        ["writingOrLetters", output.writingOrLetters],
+        ["clothingCoversArmsAndLegs", !output.clothingCoversArmsAndLegs],
+        ["fullBodyVisible", !output.fullBodyVisible],
+        ["fiveFingersEachHand", !output.fiveFingersEachHand],
+        ["anotherPerson", output.anotherPerson],
+        ["sacredPlace", output.sacredPlace],
+      ] as const
+    )
+      .filter(([, fails]) => fails)
+      .map(([flag]) => flag);
+    if (failed.length) logImageCheckFailure(kind, [...failed]);
+    return failed.length === 0;
   },
   async sameChild(referenceUrl, urls) {
     const { output } = await generateText({

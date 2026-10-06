@@ -7,9 +7,11 @@
 | المعرّف | الموقف | المصدر | الدرجة |
 | --- | --- | --- | --- |
 | `adhkar-waking` | الاستيقاظ | TODO_REVIEW | TODO_REVIEW |
-| `adhkar-dressing` | لبس الثياب | TODO_REVIEW | TODO_REVIEW |
+| `adhkar-dressing` | لبس ثوب جديد | TODO_REVIEW | TODO_REVIEW |
 | `adhkar-food-before` | الطعام | TODO_REVIEW | TODO_REVIEW |
 | `adhkar-food-after` | الطعام | TODO_REVIEW | TODO_REVIEW |
+
+استثناء واحد: نص `adhkar-dressing` (ذكر لبس الثوب الجديد) نُقل بقرار المالك من صفحته المرسومة `dua-dressing.png` حرفاً بحرف، ويحتاج مطابقة على الكتاب المطبوع.
 
 حزمة المناسك (`manasik.json`) فارغة حتى يصل منسك التلبية.
 

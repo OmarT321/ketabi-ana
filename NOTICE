@@ -1,6 +1,12 @@
 كتابي أنا (Kitabi Ana)
 ======================
 
+Code
+----
+
+[PENDING] Licence for the code in this repository has not been chosen. Until a
+LICENSE file is added, no licence is granted beyond viewing on GitHub.
+
 This repository was separated from a repository it shared with another
 project. All code, data and tests specific to that other project were removed.
 Part of the remaining code originates from the shared repository:
@@ -16,12 +22,40 @@ See docs/ORIGIN.md.
 been confirmed with the original author. Replace this line with the agreed text
 before publishing or submitting this repository.
 
-Content: the adhkar texts are taken from the printed product «حصن الطفل»,
-supplied by the content owner. See docs/SOURCES.md.
+Content and book art (not licensed with the code)
+-------------------------------------------------
 
-Book art: apps/qindeel/public/book/ (cover-bg.jpg, page-bg.jpg, top-waking.png,
-top-logo.png) comes from the content owner's «حصن الطفل» design files. Two areas
-were cleared from the top layer; see docs/ASSETS.md.
+The adhkar texts are taken from the printed product «حصن الطفل», supplied by
+the content owner (see docs/SOURCES.md). The text of adhkar-dressing was copied
+from the owner's drawn page and is pending a check against the printed book.
 
-Fonts: Aref Ruqaa and IBM Plex Sans Arabic (SIL Open Font License 1.1), served
-through next/font. Amiri (OFL 1.1) is still loaded and is due to be removed.
+Book art in apps/qindeel/public/book/ (cover-bg.jpg, cover-top.png,
+page-bg.jpg, top-logo.png, dua-*.png) comes from the content owner's
+«حصن الطفل» design files. top-logo.png is derived from one of them with areas
+cleared; see docs/ASSETS.md.
+
+All rights in the texts and the art remain with their owner. They are included
+to run this application and may not be reused without the owner's permission.
+
+Fonts
+-----
+
+Aref Ruqaa, IBM Plex Sans Arabic and Amiri: SIL Open Font License 1.1, served
+through next/font (self-hosted at build time). Amiri is still loaded and is due
+to be removed.
+
+Dependencies
+------------
+
+- Next.js, React, React DOM, zod: MIT
+- lucide-react: ISC
+- ai (Vercel AI SDK): Apache-2.0
+
+Full licence texts ship with each package in node_modules.
+
+External services (optional, off by default)
+--------------------------------------------
+
+Vercel AI Gateway (text) and fal.ai (pictures) are called only when
+AI_ENABLED / AI_IMAGES_ENABLED are true. No model weights or generated
+pictures are included in this repository.

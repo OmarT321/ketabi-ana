@@ -48,13 +48,11 @@ export function ReviewBadge({ lessons }: { lessons: readonly Lesson[] }) {
 export function BookReader({
   entries,
   profile,
-  notice,
   images,
   onEdit,
 }: {
   entries: LessonResponse[];
   profile: ReaderProfile;
-  notice: string;
   /** Pictures for this book, or null: the page then draws its own. */
   images: BookImages | null;
   onEdit: () => void;
@@ -213,7 +211,6 @@ export function BookReader({
                   number={page + index}
                   profile={profile}
                   story={story}
-                  notice={notice}
                   images={images}
                 />
               ))}
@@ -257,7 +254,6 @@ export function BookReader({
             number={index + 1}
             profile={profile}
             story={story}
-            notice={notice}
             images={images}
             print
           />
@@ -366,14 +362,12 @@ function BookPage({
   number,
   profile,
   story,
-  notice,
   images,
 }: {
   item: Page;
   number: number;
   profile: ReaderProfile;
   story: ReturnType<typeof buildStoryBook>;
-  notice: string;
   images: BookImages | null;
   print?: boolean;
 }) {
@@ -429,11 +423,11 @@ function BookPage({
             <div className="book-card meaning-prose">
               <p>{named(item.entry.explanation, profile.name)}</p>
             </div>
-            <small className="source-note">
-              {item.entry.mode === "generated"
-                ? COPY.book.explanationGenerated
-                : COPY.book.explanationAsWritten}
-            </small>
+            {/* A meaning shown as written says so under it; the note on generated
+                explanations is on the closing page, once. */}
+            {item.entry.mode !== "generated" && (
+              <small className="source-note">{COPY.book.explanationAsWritten}</small>
+            )}
           </>
         )}
         {item.kind === "closing" && (
@@ -445,7 +439,9 @@ function BookPage({
             </ul>
             <div className="book-colophon">
               <p>{PARENT_LINE}</p>
-              <p>{notice}</p>
+              {story.items.some((entry) => entry.mode === "generated") && (
+                <p className="source-note">{COPY.book.explanationGenerated}</p>
+              )}
             </div>
           </div>
         )}

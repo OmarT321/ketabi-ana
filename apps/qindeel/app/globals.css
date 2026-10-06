@@ -1969,6 +1969,12 @@ details > summary::marker {
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
 }
+/* A page is at least one sheet tall and grows with its text: never a cut line.
+   (overflow: clip is not a scroll container, so the sheet ratio stays a minimum.) */
+.book-reader .paper-leaf {
+  min-height: auto;
+  overflow: clip;
+}
 .book-reader .book-cover {
   width: 430px;
   max-width: 100%;
@@ -1990,6 +1996,13 @@ details > summary::marker {
   object-fit: fill;
   z-index: 1;
 }
+/* Drawn layers keep the sheet's shape and stay anchored to the top when a page grows. */
+.leaf-top,
+.leaf-dua {
+  bottom: auto;
+  height: auto;
+  aspect-ratio: 1748 / 2480;
+}
 .leaf-name,
 .cover-name {
   position: absolute;
@@ -2008,7 +2021,7 @@ details > summary::marker {
 }
 .leaf-title {
   position: absolute;
-  top: 20.6%;
+  top: 29.2cqw;
   inset-inline: 6%;
   z-index: 2;
   margin: 0;
@@ -2016,10 +2029,11 @@ details > summary::marker {
   font: 700 6.4cqw/1.35 var(--font-display), var(--font-body);
   color: #ffa8dc;
 }
+/* In the flow, under the title: the page grows with the card instead of cutting it. */
 .leaf-body {
-  position: absolute;
-  top: 28.5%;
-  inset-inline: 0;
+  position: relative;
+  margin-top: 40.4cqw;
+  padding-bottom: 9cqw;
   z-index: 3;
   display: flex;
   flex-direction: column;
@@ -2030,7 +2044,8 @@ details > summary::marker {
 .book-card {
   width: 82%;
   margin: 0 auto;
-  padding: 48px;
+  padding: clamp(14px, 7cqw, 48px);
+  overflow-wrap: anywhere;
   border-radius: 32px;
   border: 0;
   box-shadow: none;
@@ -2062,21 +2077,36 @@ details > summary::marker {
   text-align: center;
 }
 .closing-card {
+  display: grid;
+  gap: 4cqw;
+  padding: 6cqw;
   font: 500 3.3cqw/1.9 var(--font-body);
 }
 .closing-card .closing-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 2cqw;
-  font: 700 5cqw/1.7 var(--font-display), var(--font-body);
+  margin: 0;
+  display: grid;
+  gap: 1.2cqw;
+  font: 700 5cqw/1.5 var(--font-display), var(--font-body);
   color: #ffd2ec;
 }
 .closing-card .book-colophon {
+  display: grid;
+  gap: 2cqw;
   border: 0;
   margin: 0;
   padding: 0;
   color: #fff;
-  font-size: 2.9cqw;
+  font-size: 3cqw;
+  line-height: 1.9;
+}
+.closing-card .book-colophon p {
+  margin: 0;
+}
+.closing-card .book-colophon .source-note {
+  font-size: 2.6cqw;
+  color: rgb(255 255 255 / 80%);
 }
 /* Scene picture: below the card, sitting on the bottom edge, 78% wide, no frame. */
 .book-reader .story-illustration {
@@ -2326,7 +2356,7 @@ details > summary::marker {
 }
 /* Its drawn card ends at about 46% of the page; the source line sits just below. */
 .has-dua .leaf-body {
-  top: 47%;
+  margin-top: 66.7cqw;
 }
 .dua-source {
   margin: 0;

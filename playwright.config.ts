@@ -22,7 +22,12 @@ export default defineConfig({
           timeout: 120_000,
           // Tests never call a real provider, whatever .env.local holds: Next.js
           // gives .env.local priority over these values, but skips it when NODE_ENV=test.
-          env: { NODE_ENV: "test", AI_ENABLED: "false", AI_IMAGES_ENABLED: "false" },
+          env: {
+            NODE_ENV: "test",
+            AI_ENABLED: "false",
+            AI_IMAGES_ENABLED: "false",
+            RATE_LIMIT_PER_MINUTE: "1000",
+          },
         },
       ],
 });

@@ -102,7 +102,8 @@ export async function limit(request: Request) {
     bucket = localBuckets.get(key) || { count: 0, until: now + 60000 };
   bucket.count++;
   localBuckets.set(key, bucket);
-  if (bucket.count > 30)
+  // 30 a minute per visitor; the e2e server raises it, since every test shares one key.
+  if (bucket.count > (Number(process.env.RATE_LIMIT_PER_MINUTE) || 30))
     throw new HttpError(429, COPY.service.busy);
 }
 export function failure(error: unknown) {

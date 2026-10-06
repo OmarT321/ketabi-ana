@@ -64,6 +64,28 @@ async function answerSteps(page: import("@playwright/test").Page, young: boolean
 
 const texts = adhkar.map((item) => item.text);
 
+/** Every card and text block lies inside its page, and nothing that clips has
+ * hidden overflow: a page grows with its text and never cuts a line. */
+async function expectTextInsidePages(page: import("@playwright/test").Page, pages: string) {
+  const outside = await page.evaluate((selector) => {
+    const bad: string[] = [];
+    for (const [n, leaf] of [...document.querySelectorAll(selector)].entries()) {
+      const L = leaf.getBoundingClientRect();
+      if (!L.width) continue;
+      for (const el of leaf.querySelectorAll<HTMLElement>(".book-card, .leaf-body > *, .leaf-title")) {
+        if (el.closest(".sr-only")) continue;
+        const r = el.getBoundingClientRect();
+        if (r.left < L.left - 1 || r.right > L.right + 1 || r.top < L.top - 1 || r.bottom > L.bottom + 1)
+          bad.push(`page ${n + 1} ${el.className}: outside the page`);
+        if (getComputedStyle(el).overflow !== "visible" && (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1))
+          bad.push(`page ${n + 1} ${el.className}: hidden overflow`);
+      }
+    }
+    return bad;
+  }, pages);
+  expect(outside, "no text leaves its card or page").toEqual([]);
+}
+
 test("Kitabi Ana: question steps outside the book, three-item book, print and privacy", async ({
   page,
 }, testInfo) => {
@@ -138,9 +160,10 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
   await expect(meaningPage.locator(".meaning-prose")).toHaveText(
     (warm ?? item!.meaning_older).replaceAll("{name}", "ليان"),
   );
-  await expect(meaningPage.locator(".source-note")).toHaveText(
-    warm ? "صاغ الحاسوب هذا الشرح من المعنى المكتوب" : "المعنى كما كُتب في المصدر",
-  );
+  // A generated explanation carries no line on its page (the note is on the
+  // closing page, once); a meaning shown as written says so under it.
+  if (warm) await expect(meaningPage.locator(".source-note")).toHaveCount(0);
+  else await expect(meaningPage.locator(".source-note")).toHaveText("المعنى كما كُتب في المصدر");
   await page.screenshot({
     path: testInfo.outputPath("book-spread.png"),
     fullPage: true,
@@ -172,6 +195,13 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
   await expect(reader.locator(".page-closing")).toContainText(
     "النصوص منقولة من مصادرها من منتج «حصن الطفل»",
   );
+  // The closing page: the title, the situations, the parent line once, and the
+  // note on generated explanations once.
+  await expect(reader.locator(".page-closing .book-colophon > p")).toHaveCount(warm ? 2 : 1);
+  if (warm)
+    await expect(reader.locator(".page-closing .source-note")).toHaveText(
+      "شروح هذا الكتاب صاغها الحاسوب من المعاني المكتوبة.",
+    );
   expect(sent.join("")).not.toContain("ليان");
   expect(sent.join(""), "the typed reply is sent once, with the name masked").toContain(
     "لأن {name} تحب الصباح الجديد",
@@ -236,6 +266,29 @@ test("Kitabi Ana mobile: every page turns without overflow and the next book dif
     await page.getByRole("button", { name: "الصفحة التالية", exact: true }).click();
   }
   expect(secondBook.some((text) => !firstBook.includes(text))).toBeTruthy();
+});
+test("Long explanations (older band) stay inside their cards on a phone and in print", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await page.goto(qindeel);
+  // Two books cover all four items: the next book always differs.
+  for (let book = 0; book < 2; book++) {
+    await page.locator("#child-age").selectOption("12");
+    await page.getByRole("radio", { name: "بنت" }).check();
+    await page.getByRole("button", { name: "اصنع كتاب طفلي" }).click();
+    for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "تخطّي" }).click();
+    await page.getByRole("button", { name: "افتح الكتاب", exact: true }).click();
+    const next = page.getByRole("button", { name: "الصفحة التالية", exact: true });
+    for (let i = 0; i < 7; i++) {
+      await expectTextInsidePages(page, ".reader-screen .paper-leaf");
+      if (i < 6) await next.click();
+    }
+    await page.emulateMedia({ media: "print" });
+    await expectTextInsidePages(page, ".print-only .paper-leaf");
+    await page.emulateMedia({ media: "screen" });
+    await page.getByRole("button", { name: "كتاب جديد" }).click();
+  }
 });
 test("Mobile homepage fits viewport and have no runtime errors", async ({
   page,

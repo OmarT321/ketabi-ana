@@ -235,7 +235,6 @@ export default function LearningApp() {
               <BookReader
                 entries={book}
                 profile={profile}
-                notice={notice}
                 images={images}
                 onEdit={() => {
                   setBook([]);

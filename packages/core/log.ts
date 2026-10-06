@@ -34,12 +34,18 @@ export function logSameChildNoOutput(pictures: number) {
   emit({ event: "same_child_no_output", pictures });
 }
 
+/** The same-child comparison's verdicts, in book order: recorded, never acted on. */
+export function logSameChildVerdicts(verdicts: (boolean | null)[]) {
+  emit({ event: "same_child_verdicts", verdicts });
+}
+
 /** The single write: only the typed records above reach it. */
 function emit(
   record:
     | ({ event: "explanation_rejected" } & RejectionRecord)
     | { event: "image_check_failed"; kind: "child-on-white" | "scene"; failed: ImageCheckFlag[] }
-    | { event: "same_child_no_output"; pictures: number },
+    | { event: "same_child_no_output"; pictures: number }
+    | { event: "same_child_verdicts"; verdicts: (boolean | null)[] },
 ) {
   console.warn(JSON.stringify(record));
 }

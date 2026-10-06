@@ -1,7 +1,7 @@
 import { generateText, NoOutputGeneratedError, Output } from "ai";
 import { z } from "zod";
 import type { AgeBand, Gender, Lesson, Pose, SceneName } from "./types";
-import { logImageCheckFailure, logSameChildNoOutput } from "./log";
+import { logImageCheckFailure, logSameChildNoOutput, logSameChildVerdicts } from "./log";
 
 // ── Approved prompt parts (stage 4.4). Do not reword. ───────────────────────
 /** Added to all four outfits (owner's decision). */
@@ -206,8 +206,7 @@ const noImages = (lessons: readonly Lesson[]): BookImages => ({
  * 2. every scene from that reference, all at once, with the same outfit text and
  *    prohibitions; only the scene and the pose change;
  * 3. a yes/no check on every picture, one retry, then the drawn fallback (null);
- * 4. a consistency check across the book: a picture of a different child is
- *    redone once from the same reference, then falls back;
+ * 4. a consistency check across the book, logged only: it drops and redoes nothing;
  * 5. the cover: the reference with its background removed.
  * The reference goes to the model as it came out, never processed: a
  * background-removed cut-out loses the face, so one is refused as a reference.
@@ -297,20 +296,13 @@ export async function illustrateBook(
     }
   };
 
-  // Consistency across the book: one redo from the same reference, then fallback.
+  // Consistency across the book: logged for review, never a reason to drop or
+  // redo a picture (owner's decision). The same-child verdict is a judgement call
+  // and unstable with this model: it rejected three sound scenes, then accepted
+  // two of the same kind, doubling the cost for nothing. The yes/no safety check
+  // above still drops and retries as before.
   const ids = lessons.map((l) => l.id).filter((id) => urlOf(scenes[id]));
-  if (ids.length) {
-    const verdicts = await sameAs(ids.map((id) => urlOf(scenes[id])!));
-    await Promise.all(
-      ids
-        .filter((_, i) => verdicts[i] === false)
-        .map(async (id) => {
-          const again = await makeScene(lessons.find((l) => l.id === id)!);
-          const url = urlOf(again);
-          scenes[id] = url && (await sameAs([url]))[0] !== false ? again : null;
-        }),
-    );
-  }
+  if (ids.length) logSameChildVerdicts(await sameAs(ids.map((id) => urlOf(scenes[id])!)));
 
   let cover: string | null = null;
   try {

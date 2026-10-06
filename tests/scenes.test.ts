@@ -121,16 +121,12 @@ test("every picture is checked; a failure is retried once, then falls back", asy
   assert.equal(result.scenes[book[2].id], null);
 });
 
-test("a picture of a different child is redone once from the same reference, then falls back", async () => {
-  const different = new Set(["https://img.test/pic-3.png", "https://img.test/pic-5.png"]);
-  const { deps, calls } = fakeDeps({ sameChild: (url) => !different.has(url) });
+test("a same-child verdict of different is logged only: nothing is redone or dropped", async () => {
+  const { deps, calls } = fakeDeps({ sameChild: () => false });
   const result = await illustrateBook({ ...input, lessons: book }, deps);
-  const redo = calls.filter((c) => c.op === "withReference").slice(3);
-  assert.equal(redo.length, 1, "one redo for the one inconsistent picture");
-  assert.equal(redo[0].referenceUrl, "https://img.test/ref-1.png");
-  const ids = book.map((l) => l.id);
-  const failed = ids.filter((id) => result.scenes[id] === null);
-  assert.equal(failed.length, 1, "still different after the redo: drawn fallback");
+  assert.equal(calls.filter((c) => c.op === "sameChild").length, 1, "the comparison still runs");
+  assert.equal(calls.filter((c) => c.op === "withReference").length, 3, "no redo");
+  for (const l of book) assert.equal(result.scenes[l.id]?.mode, "generated");
 });
 
 test("scenes repeat the outfit with the same colours and keep the hands closed or out of sight", async () => {

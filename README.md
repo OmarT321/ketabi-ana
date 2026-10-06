@@ -47,6 +47,10 @@
 
 - لا حسابات. واسم الطفل لا يغادر المتصفح، ويُستبدل برمز إن كتبه الطفل داخل إجابته.
 - اسم الطفل يظهر في الغلاف وفي صفحة الشرح التي تخاطبه به، ولا يظهر في صفحة النص ولا في الطبقات المرسومة.
+- **رفع صورة الطفل** معطّل افتراضياً (`ALLOW_UPLOAD=false`). حين يُفعَّل:
+  - يقبل صورة واحدة بصيغة JPG أو PNG، حتى 2 ميجا، ويُفحص نوعها الحقيقي في المتصفح وفي الخادم.
+  - تُرسل إلى خدمة الرسم fal مرجعاً لرسم الشخصية فقط، ثم تُنسى: لا تُحفظ، ولا تُسجَّل، ولا تُرسل في أي طلب آخر. وبقية الصور تُرسم من الشخصية المرسومة لا من الصورة.
+  - راجعوا سياسة الاحتفاظ لدى fal قبل التفعيل، فالصورة تصل إليها.
 - ما يكتبه الطفل في خطوة السؤال:
   - يُستعمل في طلب الشرح ويُنسى: لا يُحفظ ولا يُطبع ولا يظهر في الكتاب ولا في صفحة الختام.
   - يمرّ قبل إرساله بفحص الأزمة وفحص المحتوى المقيَّد.
@@ -79,7 +83,7 @@ npx playwright install chromium && npm run test:e2e
 
 ### متغيرات البيئة (الأسماء فقط؛ انظر `apps/qindeel/.env.example`)
 
-`CONTENT_MODE` (`preview` أو `reviewed`)، `AI_ENABLED`، `AI_IMAGES_ENABLED`، `AI_TEXT_MODEL`، `AI_VISION_MODEL`، `FAL_KEY`، `FAL_REFERENCE_MODEL`، `FAL_EDIT_MODEL`، `FAL_BACKGROUND_MODEL`، `AI_GATEWAY_API_KEY`، `SUPABASE_URL`، `SUPABASE_PUBLISHABLE_KEY`، `INTERNAL_API_TOKEN`.
+`CONTENT_MODE` (`preview` أو `reviewed`)، `AI_ENABLED`، `AI_IMAGES_ENABLED`، `ALLOW_UPLOAD`، `AI_TEXT_MODEL`، `AI_VISION_MODEL`، `FAL_KEY`، `FAL_REFERENCE_MODEL`، `FAL_EDIT_MODEL`، `FAL_BACKGROUND_MODEL`، `AI_GATEWAY_API_KEY`، `SUPABASE_URL`، `SUPABASE_PUBLISHABLE_KEY`، `INTERNAL_API_TOKEN`.
 
 بلا `SUPABASE_URL` يعمل حدّ الطلبات في الذاكرة، في التطوير والإنتاج. ومع `SUPABASE_URL` يلزم `INTERNAL_API_TOKEN` أيضاً، وإلا تُرجع نقاط الـAPI الرمز 503.
 

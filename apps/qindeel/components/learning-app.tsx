@@ -20,6 +20,11 @@ export default function LearningApp() {
   const [catalogBusy, setCatalogBusy] = useState(true);
   const [catalogError, setCatalogError] = useState("");
   const [notice, setNotice] = useState(DEFAULT_NOTICE);
+  // Upload path: shown only when the server allows it. The photo stays in page
+  // memory for one book request and is dropped right after it.
+  const [allowUpload, setAllowUpload] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState("");
   const [name, setName] = useState("");
   const [age, setAge] = useState(6);
   // Declared by the parent; never inferred from the name or a photo.
@@ -44,13 +49,14 @@ export default function LearningApp() {
     setCatalogBusy(true);
     setCatalogError("");
     try {
-      const data = await request<{ lessons: Lesson[]; reviewNotice: string }>(
+      const data = await request<{ lessons: Lesson[]; reviewNotice: string; allowUpload?: boolean }>(
         "/api/catalog",
         undefined,
         signal,
       );
       setCatalog(data.lessons);
       setNotice(data.reviewNotice || DEFAULT_NOTICE);
+      setAllowUpload(data.allowUpload === true);
     } catch (error) {
       if (!signal?.aborted)
         setCatalogError(
@@ -67,6 +73,17 @@ export default function LearningApp() {
     return () => controller.abort();
   }, [loadCatalog]);
   useEffect(() => () => generation.current?.abort(), []);
+
+  function choosePhoto(file: File | undefined) {
+    setPhoto(null);
+    setPhotoError("");
+    if (!file) return;
+    if (!["image/jpeg", "image/png"].includes(file.type)) return setPhotoError(COPY.form.photoType);
+    if (file.size > 2 * 1024 * 1024) return setPhotoError(COPY.form.photoSize);
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
+  }
 
   function startSteps(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,9 +119,12 @@ export default function LearningApp() {
           lessonIds: selected.map((lesson) => lesson.id),
           age,
           gender,
+          ...(allowUpload && photo ? { photo } : {}),
         },
         controller.signal,
       ).catch(() => null);
+      // The photo served this one request; it is not kept for the next book.
+      setPhoto(null);
       const entries = await Promise.all(
         selected.map((lesson, index) =>
           request<LessonResponse>(
@@ -352,6 +372,26 @@ export default function LearningApp() {
                       ))}
                     </div>
                   </fieldset>
+                  {allowUpload && (
+                    <div className="form-field photo-field">
+                      <label htmlFor="child-photo">
+                        {COPY.form.photoLabel} <span>{COPY.form.optional}</span>
+                      </label>
+                      <input
+                        id="child-photo"
+                        type="file"
+                        accept="image/jpeg,image/png"
+                        aria-describedby="child-photo-hint"
+                        onChange={(event) => choosePhoto(event.target.files?.[0])}
+                      />
+                      <small id="child-photo-hint">{COPY.form.photoHint}</small>
+                      {photoError && (
+                        <p role="alert" className="error-box">
+                          {photoError}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {catalogBusy ? (
                     <p role="status" className="inline-state">
                       <LoaderCircle className="spin" size={18} />
@@ -406,7 +446,8 @@ export default function LearningApp() {
             <details id="family-note" className="family-note">
               <summary>{COPY.family.summary}</summary>
               <p>{notice}</p>
-              <p>{COPY.family.privacy}</p>
+              <p>{allowUpload ? COPY.family.privacyWithPhoto : COPY.family.privacy}</p>
+              {allowUpload && <p>{COPY.family.photo}</p>}
               <p>{COPY.family.sent}</p>
               <p>{COPY.family.replies}</p>
               <p>{COPY.family.hosting}</p>

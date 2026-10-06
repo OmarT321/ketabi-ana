@@ -43,6 +43,27 @@ const wardrobeAndPose = (gender: Gender, band: AgeBand, pose: Pose) =>
 // flux-pro/kontext takes no negative-prompt field, so the list goes in the prompt.
 const avoid = (...lists: string[]) => ` Avoid: ${lists.join(", ")}.`;
 
+/** Upload path (off unless ALLOW_UPLOAD=true): one photo from the parent, used
+ * only as the reference for createAvatar. Never stored, logged or sent anywhere
+ * else; the page and every later picture use the drawn reference, not the photo. */
+export const PHOTO_MAX_BYTES = 2 * 1024 * 1024;
+export const photoAllowed = () => process.env.ALLOW_UPLOAD === "true";
+const PHOTO_MAGIC: Record<string, number[]> = {
+  "image/jpeg": [0xff, 0xd8, 0xff],
+  "image/png": [0x89, 0x50, 0x4e, 0x47],
+};
+/** A data URL that is really a jpeg or png of at most 2 MB, or null. */
+export function checkPhoto(dataUrl: string): string | null {
+  const match = /^data:(image\/jpeg|image\/png);base64,([A-Za-z0-9+/]+={0,2})$/.exec(dataUrl);
+  if (!match) return null;
+  const bytes = Buffer.from(match[2], "base64");
+  if (!bytes.length || bytes.length > PHOTO_MAX_BYTES) return null;
+  return PHOTO_MAGIC[match[1]].every((b, i) => bytes[i] === b) ? dataUrl : null;
+}
+/** Added to createAvatar only when a photo is the reference. */
+export const PHOTO_LINE =
+  " Draw the child in the reference photo in this style, keeping the face shape, skin tone and eye colour; the photo's clothes and background are not used.";
+
 /** createAvatar prompt (approved): the child alone on white. */
 export const referencePrompt = (gender: Gender, band: AgeBand, pose: Pose = "standing") =>
   `${wardrobeAndPose(gender, band, pose)} Entire body visible head to feet, centered, facing the viewer at a slight angle, generous empty margin on all sides. Hands clearly visible with exactly five fingers on each hand, fingers separated and well-formed. Even soft lighting. Isolated on a solid flat pure white background, no texture, no shadow, no props, no scenery, no objects.` +
@@ -83,7 +104,7 @@ export const seedFor = (sessionId: string) =>
 export type VisionKind = "child-on-white" | "scene";
 export type ImageDeps = {
   /** Text to image: the reference picture. */
-  createReference: (input: { prompt: string; seed: number }) => Promise<string>;
+  createReference: (input: { prompt: string; seed: number; photo?: string }) => Promise<string>;
   /** Image with reference (flux-pro/kontext): every later picture. */
   withReference: (input: { prompt: string; seed: number; referenceUrl: string }) => Promise<string>;
   /** A dedicated background-removal model, never a threshold cut. */
@@ -122,7 +143,14 @@ const noImages = (lessons: readonly Lesson[]): BookImages => ({
  * 5. the cover: the reference with its background removed.
  * A composite item (a sacred place) never goes through the scene path. */
 export async function illustrateBook(
-  input: { sessionId: string; gender: Gender; band: AgeBand; lessons: readonly Lesson[] },
+  input: {
+    sessionId: string;
+    gender: Gender;
+    band: AgeBand;
+    lessons: readonly Lesson[];
+    /** Checked photo (upload path only): the reference for createAvatar, nothing else. */
+    photo?: string;
+  },
   deps: ImageDeps,
 ): Promise<BookImages> {
   const { gender, band, lessons } = input;
@@ -140,7 +168,12 @@ export async function illustrateBook(
   };
 
   const reference = await attempt(
-    () => deps.createReference({ prompt: referencePrompt(gender, band), seed }),
+    () =>
+      deps.createReference(
+        input.photo
+          ? { prompt: referencePrompt(gender, band) + PHOTO_LINE, seed, photo: input.photo }
+          : { prompt: referencePrompt(gender, band), seed },
+      ),
     "child-on-white",
   );
   if (!reference) return noImages(lessons);
@@ -260,8 +293,11 @@ const verdictSchema = z.object({
 const visionModel = () => process.env.AI_VISION_MODEL || "anthropic/claude-sonnet-5.5";
 
 export const falDeps: ImageDeps = {
-  createReference: ({ prompt, seed }) =>
-    fal(FAL_REFERENCE_MODEL(), { prompt, seed, aspect_ratio: "3:4", output_format: "png" }),
+  createReference: ({ prompt, seed, photo }) =>
+    photo
+      ? // One photo: the same image-with-reference model as every later picture.
+        fal(FAL_EDIT_MODEL(), { prompt, seed, image_url: photo, aspect_ratio: "3:4", output_format: "png" })
+      : fal(FAL_REFERENCE_MODEL(), { prompt, seed, aspect_ratio: "3:4", output_format: "png" }),
   withReference: ({ prompt, seed, referenceUrl }) =>
     fal(FAL_EDIT_MODEL(), {
       prompt,

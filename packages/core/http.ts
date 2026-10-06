@@ -23,13 +23,14 @@ export function json(data: unknown, status = 200) {
 export async function body<T>(
   request: Request,
   schema: ZodType<T>,
+  maxBytes = 8192,
 ): Promise<T> {
   if (!request.headers.get("content-type")?.includes("application/json"))
     throw new HttpError(415, COPY.service.badRequest);
   const origin = request.headers.get("origin");
   if (origin && origin !== new URL(request.url).origin)
     throw new HttpError(403, COPY.service.notAllowed);
-  if (Number(request.headers.get("content-length") || 0) > 8192)
+  if (Number(request.headers.get("content-length") || 0) > maxBytes)
     throw new HttpError(413, COPY.service.tooLong);
   const reader = request.body?.getReader();
   if (!reader) throw new HttpError(400, COPY.service.badRequest);
@@ -39,7 +40,7 @@ export async function body<T>(
     const { done, value } = await reader.read();
     if (done) break;
     size += value.length;
-    if (size > 8192) {
+    if (size > maxBytes) {
       await reader.cancel();
       throw new HttpError(413, COPY.service.tooLong);
     }

@@ -1,9 +1,12 @@
 import { createHash } from "node:crypto";
+import { HttpError } from "./http";
 import { COPY } from "../../apps/qindeel/lib/copy";
 import {
   illustrateBook,
   imagesEnabled,
   falDeps,
+  checkPhoto,
+  photoAllowed,
   type BookImages,
   type ImageDeps,
 } from "./illustrations";
@@ -261,11 +264,16 @@ export async function answerQuestion(
  * this call. Off unless AI_ENABLED, AI_IMAGES_ENABLED and FAL_KEY are all set;
  * the page then draws its own pictures. */
 export async function getBookImages(
-  input: { sessionId: string; lessonIds: string[]; age: number; gender: Gender },
+  input: { sessionId: string; lessonIds: string[]; age: number; gender: Gender; photo?: string },
   deps: ImageDeps = falDeps,
   enabled: () => boolean = imagesEnabled,
+  uploads: () => boolean = photoAllowed,
 ): Promise<BookImages | null> {
   if (!validAge(input.age) || !["boy", "girl"].includes(input.gender)) return null;
+  // A photo is accepted only when uploads are on, and only as a real jpeg or png
+  // of at most 2 MB. It lives in this call and goes nowhere but createAvatar.
+  const photo = input.photo === undefined ? undefined : checkPhoto(input.photo);
+  if (photo === null || (photo && !uploads())) throw new HttpError(400, COPY.form.photoRejected);
   const all = await getLessons();
   const chosen = input.lessonIds.map((id) => all.find((l) => l.id === id));
   if (chosen.some((l) => !l) || new Set(input.lessonIds).size !== input.lessonIds.length)
@@ -274,7 +282,13 @@ export async function getBookImages(
   if (!enabled())
     return { cover: null, scenes: Object.fromEntries(lessonsInBook.map((l) => [l.id, null])) };
   return illustrateBook(
-    { sessionId: input.sessionId, gender: input.gender, band: ageBand(input.age), lessons: lessonsInBook },
+    {
+      sessionId: input.sessionId,
+      gender: input.gender,
+      band: ageBand(input.age),
+      lessons: lessonsInBook,
+      ...(photo ? { photo } : {}),
+    },
     deps,
   );
 }

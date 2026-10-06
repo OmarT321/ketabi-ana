@@ -207,11 +207,6 @@ export default function LearningApp() {
             <div className="intro-book" aria-hidden="true">
               <div className="mini-cover">
                 <span>{COPY.intro.miniCoverName}</span>
-                <strong>
-                  {COPY.intro.miniCoverLine1}
-                  <br />
-                  {COPY.intro.miniCoverLine2}
-                </strong>
                 <small>{COPY.intro.miniCoverOpen}</small>
               </div>
             </div>

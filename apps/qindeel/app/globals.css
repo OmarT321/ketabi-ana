@@ -245,11 +245,6 @@ legend {
   font-size: 9px;
   letter-spacing: 1px;
 }
-.mini-cover strong {
-  display: block;
-  font: 700 29px/1.5 var(--font-book);
-  margin: 13px 0;
-}
 .mini-cover .scene {
   display: block;
   width: 100%;
@@ -1237,10 +1232,6 @@ details > summary::marker {
   .mini-cover {
     width: 180px;
     padding: 16px 14px 12px;
-  }
-  .mini-cover strong {
-    font-size: 25px;
-    margin: 11px 0;
   }
   .mini-cover small {
     font-size: 8px;

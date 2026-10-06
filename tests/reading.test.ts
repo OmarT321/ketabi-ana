@@ -51,7 +51,7 @@ test("questions are answered only from the content file, refused otherwise", asy
       assert.equal(meaning.status, "answered");
       assert.equal(meaning.answer, meaningFor(lesson, ageBand(age)));
       const when = await answerQuestion(lesson.id, "متى أقول هذا الذكر؟", age);
-      assert.equal(when.answer, `نقول هذا الذكر في موقف: ${lesson.situation}.`);
+      assert.equal(when.answer, `نقول هذا الذكر عند: ${lesson.situation}.`);
     }
     for (const q of [
       "كيف أقول هذا الذكر بالإنجليزية؟",

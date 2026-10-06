@@ -1,4 +1,5 @@
 import type { Lesson, LessonResponse } from "./types";
+import { COPY } from "../../apps/qindeel/lib/copy";
 
 /** Book structure only: cover, one pair of pages per item, closing page.
  * No authored narrative. The {name} token is replaced in the browser and never
@@ -40,7 +41,7 @@ export function buildStoryBook(entries: LessonResponse[]): StoryBook {
   )
     throw new Error("A book needs one to three distinct items.");
   return {
-    title: "كتاب {name}",
+    title: COPY.book.title,
     items: entries,
     situations: [...new Set(entries.map((e) => e.lesson.situation))],
   };

@@ -9,9 +9,9 @@ import {
   hintChipsFor,
 } from "@platform/core/content";
 import { maskName } from "@platform/core/story";
+import { COPY } from "@/lib/copy";
 
-const ar = (value: number) => value.toLocaleString("ar-SA");
-export const REPLY_WARNING = "اكتب بكلماتك، ولا تكتب اسمك ولا أي معلومة عنك.";
+export const REPLY_WARNING = COPY.step.replyWarning;
 
 
 /** One question step, outside the book. No reply is right or wrong; the step
@@ -48,7 +48,7 @@ export function QuestionStep({
       data-testid="question-step"
     >
       <p className="step-progress" data-testid="step-progress">
-        سؤال {ar(index + 1)} من {ar(total)}
+        {COPY.step.progress(index + 1, total)}
       </p>
       <p className="step-situation">{lesson.top_layer.title}</p>
       <blockquote className="step-text">{lesson.text}</blockquote>
@@ -81,7 +81,7 @@ export function QuestionStep({
             {REPLY_WARNING}
           </p>
           <label htmlFor="step-reply">
-            اكتب إجابتك <span>اختياري</span>
+            {COPY.step.replyLabel} <span>{COPY.form.optional}</span>
           </label>
           <textarea
             id="step-reply"
@@ -93,21 +93,21 @@ export function QuestionStep({
             onChange={(event) => setDraft(event.target.value)}
           />
           <button type="submit" className="button" disabled={!draft.trim()}>
-            هذه إجابتي
+            {COPY.step.submit}
             <ArrowLeft size={18} />
           </button>
         </form>
       )}
       <div className="step-actions">
         <button type="button" onClick={() => onReply({ kind: "none" })}>
-          ما أعرف
+          {COPY.step.dontKnow}
         </button>
         <button type="button" onClick={() => onReply({ kind: "none" })}>
-          تخطّي
+          {COPY.step.skip}
         </button>
       </div>
       <button type="button" className="quiet-link step-cancel" onClick={onCancel}>
-        العودة إلى الاختيارات
+        {COPY.form.back}
       </button>
     </section>
   );

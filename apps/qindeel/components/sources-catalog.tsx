@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import type { Lesson } from "@platform/core/types";
 import { REVIEW_BADGE, isApproved, sourceLine } from "@platform/core/content";
+import { COPY } from "@/lib/copy";
 
 export function SourcesCatalog() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -21,13 +22,13 @@ export function SourcesCatalog() {
           signal: controller.signal,
         });
         if (!response.ok)
-          throw new Error("تعذّر تحميل المصادر. حاول مرة أخرى.");
+          throw new Error(COPY.sources.failed);
         const data = (await response.json()) as { lessons: Lesson[] };
         setLessons(data.lessons);
       } catch (reason) {
         if (!controller.signal.aborted)
           setError(
-            reason instanceof Error ? reason.message : "تعذّر تحميل المكتبة.",
+            reason instanceof Error ? reason.message : COPY.sources.failed,
           );
       } finally {
         if (!controller.signal.aborted) setBusy(false);
@@ -45,34 +46,34 @@ export function SourcesCatalog() {
             className={pack === "adhkar" ? "active" : ""}
             onClick={() => setPack("adhkar")}
           >
-            أذكاري الصغيرة
+            {COPY.sources.adhkar}
           </button>
           <button
             aria-pressed={pack === "manasik"}
             className={pack === "manasik" ? "active" : ""}
             onClick={() => setPack("manasik")}
           >
-            رحلتي إلى المناسك
+            {COPY.sources.manasik}
           </button>
         </div>
-        <span>النصوص منقولة من منتج «حصن الطفل»</span>
+        <span>{COPY.sources.origin}</span>
       </div>
       {busy ? (
         <p className="inline-loading">
           <LoaderCircle size={17} className="spin" />
-          نحمّل مصادر المكتبة…
+          {COPY.sources.loading}
         </p>
       ) : error ? (
         <div className="error-box" role="alert">
           {error}
           <button onClick={() => setRetry((value) => value + 1)}>
-            إعادة المحاولة
+            {COPY.sources.retry}
           </button>
         </div>
       ) : (
         <div className="source-list">
           {lessons.filter((lesson) => lesson.pack === pack).length === 0 && (
-            <p role="status">لا نصوص في هذه الحزمة بعد.</p>
+            <p role="status">{COPY.sources.empty}</p>
           )}
           {lessons
             .filter((lesson) => lesson.pack === pack)
@@ -83,7 +84,7 @@ export function SourcesCatalog() {
                 <p>{sourceLine(lesson)}</p>
                 <span className="review-status">
                   {isApproved(lesson)
-                    ? `مراجع: ${lesson.review.reviewer || "مراجعة معتمدة"}`
+                    ? COPY.sources.reviewer(lesson.review.reviewer)
                     : REVIEW_BADGE}
                 </span>
               </article>

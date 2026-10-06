@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Arabic, Amiri, Aref_Ruqaa } from "next/font/google";
 import "./globals.css";
+import { COPY } from "@/lib/copy";
 
 const sans = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
@@ -25,9 +26,8 @@ const display = Aref_Ruqaa({
 });
 
 export const metadata: Metadata = {
-  title: { default: "كتابي أنا", template: "%s | كتابي أنا" },
-  description:
-    "كتاب شخصي يحمل اسم طفلك، فيه أذكار مواقف يومه بنصّها كما ورد، ومعناها بلغة تناسب عمره، دون حساب.",
+  title: { default: COPY.site.name, template: `%s | ${COPY.site.name}` },
+  description: COPY.site.metaDescription,
   robots: {
     index: process.env.CONTENT_MODE === "reviewed",
     follow: process.env.CONTENT_MODE === "reviewed",
@@ -41,7 +41,7 @@ export default function RootLayout({
     <html lang="ar" dir="rtl">
       <body className={`${sans.variable} ${amiri.variable} ${display.variable}`}>
         <a className="skip-link" href="#main">
-          انتقل إلى المحتوى
+          {COPY.site.skipLink}
         </a>
         {children}
       </body>

@@ -1,3 +1,4 @@
+import { COPY } from "@/lib/copy";
 import { z } from "zod";
 import { getLesson } from "@platform/core/server";
 import { MAX_REPLY_LENGTH } from "@platform/core/content";
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
     const input = await body(request, schema);
     await limit(request);
     const result = await getLesson(input.lessonId, input.age, input.gender, input.reply);
-    return result ? json(result) : json({ error: "هذا الدرس غير متاح." }, 404);
+    return result ? json(result) : json({ error: COPY.service.lessonMissing }, 404);
   } catch (error) {
     return failure(error);
   }

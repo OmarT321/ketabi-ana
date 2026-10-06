@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { COPY } from "../../apps/qindeel/lib/copy";
 import {
   illustrateBook,
   imagesEnabled,
@@ -64,7 +65,7 @@ export function readiness() {
 }
 export const notice = preview
   ? reviewNotice
-  : "النصوص والمصادر من محتوى معتمد. أي تقديم أو شرح مولّد آليًا مميّز بوسم مستقل، ولا يعني الوسم اعتماد صياغته من مراجع بشري.";
+  : COPY.review.noticeReviewed;
 
 async function loadContent(
   fallback: readonly Lesson[],
@@ -219,8 +220,7 @@ export async function getLesson(
     ...(resolved && "crisis" in resolved ? { replyCrisis: CHILD_CRISIS } : {}),
   };
 }
-const CHILD_CRISIS =
-  "تحدث الآن مع والدك أو والدتك أو شخص بالغ تثق به ليبقى معك ويساعدك. إذا كنت في خطر فاطلب منه الاتصال بالطوارئ المحلية فورًا. هذه الخدمة لا تستطيع إرسال مساعدة.";
+const CHILD_CRISIS = COPY.crisis;
 export async function answerQuestion(
   id: string,
   question: string,
@@ -250,7 +250,7 @@ export async function answerQuestion(
   return {
     status: "answered",
     answer: asksWhen
-      ? `نقول هذا الذكر في موقف: ${lesson.situation}.`
+      ? COPY.ask.when(lesson.situation)
       : meaningFor(lesson, ageBand(age)),
     source: sourceLine(lesson),
   };

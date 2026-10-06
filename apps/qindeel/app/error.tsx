@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { COPY } from "@/lib/copy";
 export default function ErrorPage({
   reset,
 }: {
@@ -8,14 +9,14 @@ export default function ErrorPage({
 }) {
   return (
     <main id="main" className="info-page">
-      <h1>تعذّر فتح هذه الصفحة</h1>
-      <p>يمكنك إعادة المحاولة. لم تُحفظ بيانات الطفل في حساب.</p>
+      <h1>{COPY.errorPage.title}</h1>
+      <p>{COPY.errorPage.body}</p>
       <div className="button-row">
         <button className="button" onClick={reset}>
-          إعادة المحاولة
+          {COPY.errorPage.retry}
         </button>
         <Link className="text-link" href="/">
-          العودة إلى الصفحة الرئيسية
+          {COPY.errorPage.home}
         </Link>
       </div>
     </main>

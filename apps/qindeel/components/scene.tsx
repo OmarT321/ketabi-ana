@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import type { Lesson } from "@platform/core/types";
+import { COPY } from "@/lib/copy";
 
 function Star({
   x,
@@ -133,7 +134,7 @@ export function HeroIllustration() {
       className="hero-illustration"
       viewBox="0 0 640 580"
       role="img"
-      aria-label="طفلان يكتشفان عالماً من المعرفة فوق كتاب مفتوح، بين النباتات والنجوم"
+      aria-label={COPY.scenes.hero}
     >
       <defs>
         <linearGradient id={`${uid}page`} x1="0" y1="0" x2="1" y2="1">
@@ -279,15 +280,7 @@ export function Scene({
   hideChild?: boolean;
 }) {
   const dark = scene === "sleep";
-  const labels = {
-    sleep: "طفل يستعد للنوم في غرفة هادئة",
-    morning: "طفل يستقبل الصباح عند النافذة",
-    food: "طفل إلى جوار مائدة الطعام",
-    travel: "طفل يستعد للسفر مع حقيبته",
-    home: "طفل عند باب المنزل",
-    mosque: "طفل يتعلم آداب زيارة المسجد",
-    pilgrimage: "طفل يتعلم عن رحلة الحج من كتاب مصور",
-  };
+  const labels = COPY.scenes;
   return (
     <svg
       className={`scene ${compact ? "scene-compact" : ""}`}

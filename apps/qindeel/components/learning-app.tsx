@@ -11,10 +11,9 @@ import { Header } from "./site-chrome";
 import { Scene } from "./scene";
 import { BookReader, ReviewBadge, type ReaderProfile } from "./book-reader";
 import { request } from "./client-api";
+import { COPY } from "@/lib/copy";
 
-const ar = (value: number) => value.toLocaleString("ar-SA");
-const DEFAULT_NOTICE =
-  "المحتوى التعليمي بانتظار مراجعة شرعية متخصصة. اقرأوه برفقة ولي الأمر.";
+const DEFAULT_NOTICE: string = COPY.review.noticeDefault;
 
 export default function LearningApp() {
   const [catalog, setCatalog] = useState<Lesson[]>([]);
@@ -55,7 +54,7 @@ export default function LearningApp() {
     } catch (error) {
       if (!signal?.aborted)
         setCatalogError(
-          error instanceof Error ? error.message : "تعذّر تحميل المكتبة.",
+          error instanceof Error ? error.message : COPY.form.loadFailed,
         );
     } finally {
       if (!signal?.aborted) setCatalogBusy(false);
@@ -125,12 +124,10 @@ export default function LearningApp() {
       try {
         buildStoryBook(entries);
       } catch {
-        throw new Error(
-          "لم تكتمل صفحات هذا الكتاب. جرّبوا إعداد الكتاب مرة أخرى.",
-        );
+        throw new Error(COPY.build.incomplete);
       }
       setProfile({
-        name: name.trim() || (gender === "girl" ? "صديقتنا" : "صديقنا"),
+        name: name.trim() || COPY.form.defaultName[gender],
         age,
         gender,
       });
@@ -150,10 +147,10 @@ export default function LearningApp() {
       if (generation.current === controller)
         setBuildError(
           controller.signal.aborted
-            ? "طال إعداد الكتاب. حاول مرة أخرى بعد قليل."
+            ? COPY.build.slow
             : error instanceof Error
               ? error.message
-              : "تعذّر إعداد الكتاب.",
+              : COPY.build.failed,
         );
     } finally {
       sent.length = 0;
@@ -176,33 +173,30 @@ export default function LearningApp() {
             data-section="about"
           >
             <div className="intro-copy">
-              <span className="section-label">١ · ما «كتابي أنا»؟</span>
+              <span className="section-label">{COPY.intro.label}</span>
               <h1 id="intro-title">
-                كتاب يقرؤه طفلك.
+                {COPY.intro.titleLine1}
                 <br />
-                <em>ومعنى يرافق يومه.</em>
+                <em>{COPY.intro.titleLine2}</em>
               </h1>
-              <p>
-                كتاب مصوّر يحمل اسم طفلك، فيه أذكار مواقف يومه بنصّها كما ورد،
-                ومعناها بلغة تناسب عمره. من ٥ إلى ١٢ سنة، برفقتك.
-              </p>
+              <p>{COPY.intro.body}</p>
               <p className="scope-note" data-testid="scope-note">
                 {scopeNotice}
               </p>
               <a className="quiet-link" href="#make-book">
-                اصنعوا كتابكم <ArrowLeft size={18} />
+                {COPY.intro.start} <ArrowLeft size={18} />
               </a>
             </div>
             <div className="intro-book" aria-hidden="true">
               <div className="mini-cover">
-                <span>كتابي أنا</span>
+                <span>{COPY.intro.miniCoverName}</span>
                 <strong>
-                  كل كتاب
+                  {COPY.intro.miniCoverLine1}
                   <br />
-                  تبدأ بصفحة
+                  {COPY.intro.miniCoverLine2}
                 </strong>
                 <Scene scene="morning" />
-                <small>افتحوا الكتاب</small>
+                <small>{COPY.intro.miniCoverOpen}</small>
               </div>
             </div>
           </section>
@@ -213,14 +207,10 @@ export default function LearningApp() {
             data-section="how"
           >
             <div>
-              <span className="section-label">٢ · كيف نستخدمه؟</span>
-              <h2 id="how-title">اختاروا، افتحوا، واقرؤوا معًا.</h2>
+              <span className="section-label">{COPY.intro.howLabel}</span>
+              <h2 id="how-title">{COPY.intro.howTitle}</h2>
             </div>
-            <p>
-              اختاروا العمر والشخصية، وأجيبوا عن سؤال قصير لكل موقف أو تخطّوه.
-              ثم افتحوا الكتاب وقلّبوا صفحاته: لكل موقف صفحة للنص وصفحة لمعناه،
-              ويمكنكم طباعته.
-            </p>
+            <p>{COPY.intro.howBody}</p>
           </section>
 
           <section
@@ -231,9 +221,9 @@ export default function LearningApp() {
             data-section="use"
           >
             <div className="workspace-heading">
-              <span className="section-label">٣ · لنبدأ</span>
+              <span className="section-label">{COPY.intro.makeLabel}</span>
               <h2 id="workspace-title">
-                {book.length ? "هذا كتابكم." : "كتاب صغير، على ذوقه."}
+                {book.length ? COPY.intro.readingTitle : COPY.intro.makeTitle}
               </h2>
             </div>
             {crisis && (
@@ -262,7 +252,7 @@ export default function LearningApp() {
                 {busy ? (
                   <p role="status" className="inline-state">
                     <LoaderCircle className="spin" size={18} />
-                    نرتّب صفحات كتابك…
+                    {COPY.form.building}
                   </p>
                 ) : (
                   <QuestionStep
@@ -289,7 +279,7 @@ export default function LearningApp() {
                         setSteps(null);
                       }}
                     >
-                      العودة إلى الاختيارات
+                      {COPY.form.back}
                     </button>
                   </div>
                 )}
@@ -301,11 +291,11 @@ export default function LearningApp() {
                 aria-busy={busy}
               >
                 <fieldset className="maker-fields" disabled={busy}>
-                  <legend className="sr-only">اختيارات كتاب طفلك</legend>
+                  <legend className="sr-only">{COPY.form.legend}</legend>
                   <div className="personal-fields">
                     <div className="form-field">
                       <label htmlFor="child-name">
-                        اسم الطفل <span>اختياري</span>
+                        {COPY.form.nameLabel} <span>{COPY.form.optional}</span>
                       </label>
                       <input
                         id="child-name"
@@ -313,11 +303,11 @@ export default function LearningApp() {
                         onChange={(event) => setName(event.target.value)}
                         maxLength={24}
                         autoComplete="off"
-                        placeholder="الاسم الأول فقط"
+                        placeholder={COPY.form.namePlaceholder}
                       />
                     </div>
                     <div className="form-field">
-                      <label htmlFor="child-age">العمر</label>
+                      <label htmlFor="child-age">{COPY.form.ageLabel}</label>
                       <select
                         id="child-age"
                         value={age}
@@ -329,7 +319,7 @@ export default function LearningApp() {
                         ).map(
                           (value) => (
                             <option key={value} value={value}>
-                              {ar(value)} {value < 11 ? "سنوات" : "سنة"}
+                              {COPY.form.years(value)}
                             </option>
                           ),
                         )}
@@ -338,7 +328,7 @@ export default function LearningApp() {
                   </div>
                   <fieldset className="gender-field">
                     <legend>
-                      الطفل <span>مطلوب</span>
+                      {COPY.form.childLegend} <span>{COPY.form.required}</span>
                     </legend>
                     <div className="avatar-options">
                       {(["boy", "girl"] as const).map((value) => (
@@ -357,7 +347,7 @@ export default function LearningApp() {
                           <span className="avatar-art">
                             <Scene scene="morning" avatar={value} />
                           </span>
-                          <span>{value === "boy" ? "ولد" : "بنت"}</span>
+                          <span>{COPY.form[value]}</span>
                           {gender === value && <Check size={17} />}
                         </label>
                       ))}
@@ -366,7 +356,7 @@ export default function LearningApp() {
                   {catalogBusy ? (
                     <p role="status" className="inline-state">
                       <LoaderCircle className="spin" size={18} />
-                      نفتح المكتبة…
+                      {COPY.form.loading}
                     </p>
                   ) : catalogError ? (
                     <div role="alert" className="error-box">
@@ -376,15 +366,14 @@ export default function LearningApp() {
                         className="quiet-link"
                         onClick={() => void loadCatalog()}
                       >
-                        إعادة المحاولة
+                        {COPY.form.retry}
                       </button>
                     </div>
                   ) : catalog.length === 0 ? (
-                    <p role="status">لا توجد كتب متاحة حاليًا. عودوا قريبًا.</p>
+                    <p role="status">{COPY.form.empty}</p>
                   ) : (
                     <p className="selection-note">
-                      في كل كتاب ثلاثة مواقف تُختار من المكتبة، ويختلف الكتاب
-                      التالي عن هذا. <ReviewBadge lessons={catalog} />
+                      {COPY.form.selection} <ReviewBadge lessons={catalog} />
                     </p>
                   )}
                   <div className="maker-bottom">
@@ -396,16 +385,16 @@ export default function LearningApp() {
                       {busy ? (
                         <>
                           <LoaderCircle className="spin" size={18} />
-                          نرتّب صفحات كتابك…
+                          {COPY.form.building}
                         </>
                       ) : (
                         <>
-                          اصنع كتاب {name.trim() || "طفلي"}
+                          {COPY.form.submit(name.trim())}
                           <ArrowLeft size={19} />
                         </>
                       )}
                     </button>
-                    <small>بلا حساب. الاسم يبقى على هذا الجهاز.</small>
+                    <small>{COPY.form.privacyHint}</small>
                   </div>
                 </fieldset>
                 {buildError && (
@@ -416,20 +405,13 @@ export default function LearningApp() {
               </form>
             )}
             <details id="family-note" className="family-note">
-              <summary>للأسرة: المصادر والخصوصية</summary>
+              <summary>{COPY.family.summary}</summary>
               <p>{notice}</p>
-              <p>
-                الاسم لا يُرسل إلى الخادم، ولا نطلب صورًا أو حسابًا. الكتاب
-                والإجابات يبقيان في ذاكرة هذه الصفحة؛ احفظوا نسخة بالطباعة قبل
-                إغلاقها. تجنّبوا كتابة معلومات شخصية في الأسئلة.
-              </p>
-              <p>
-                لإعداد الكتاب نرسل العمر ورمز النص وجنس الطفل (ولد أو بنت) لصياغة الشرح بالمذكر أو المؤنث. تُرسل
-                الأسئلة المكتوبة لمعالجتها. وما يكتبه الطفل في خطوة السؤال يُستعمل في
-                طلب الشرح ويُنسى: لا يُحفظ ولا يُطبع ولا يظهر في الكتاب؛ وقد تتلقى خدمة الاستضافة بيانات
-                الاتصال اللازمة للتشغيل والحماية. النسخة المطبوعة تتضمن الاسم إن
-                أُدخل؛ راجعوها قبل مشاركتها.
-              </p>
+              <p>{COPY.family.privacy}</p>
+              <p>{COPY.family.sent}</p>
+              <p>{COPY.family.replies}</p>
+              <p>{COPY.family.hosting}</p>
+              <p>{COPY.family.print}</p>
             </details>
           </section>
         </main>

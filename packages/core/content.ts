@@ -1,6 +1,7 @@
 import adhkarPack from "./data/packs/adhkar.json";
 import manasikPack from "./data/packs/manasik.json";
 import { TODO_REVIEW, type AgeBand, type Lesson } from "./types";
+import { COPY } from "../../apps/qindeel/lib/copy";
 
 // Content is data authored outside the code. Freeze it so nothing at runtime can edit it.
 const freeze = (item: Lesson): Lesson =>
@@ -29,10 +30,7 @@ export const meaningFor = (lesson: Lesson, band: AgeBand) =>
   band === "young" ? lesson.meaning_young : lesson.meaning_older;
 
 /** The question step's wording is fixed per age band (owner's decision). */
-export const STEP_QUESTION: Record<AgeBand, string> = {
-  young: "برأيك، لماذا نقول هذا؟",
-  older: "في رأيك، ما معنى هذا الذكر، ولماذا نقوله في هذا الموقف؟",
-};
+export const STEP_QUESTION: Record<AgeBand, string> = COPY.step.question;
 /** Ready replies shown in the step: none until the owner's chips arrive. */
 export const hintChipsFor = (lesson: Lesson) =>
   lesson.hint_chips_ready ? lesson.hint_chips : [];
@@ -40,7 +38,7 @@ export const hintChipsFor = (lesson: Lesson) =>
 export const MAX_REPLY_LENGTH = 200;
 
 export const isPlaceholder = (value: string) => value === TODO_REVIEW;
-export const SOURCE_PENDING = "المصدر قيد التوثيق";
+export const SOURCE_PENDING = COPY.review.sourcePending;
 /** Source line as shown to readers; never invents a source. */
 export function sourceLine(lesson: Lesson) {
   if (isPlaceholder(lesson.source)) return SOURCE_PENDING;
@@ -48,11 +46,9 @@ export function sourceLine(lesson: Lesson) {
     ? lesson.source
     : `${lesson.source} · ${lesson.grade}`;
 }
-export const REVIEW_BADGE = "قيد المراجعة";
+export const REVIEW_BADGE = COPY.review.badge;
 export const isApproved = (lesson: Lesson) => lesson.review.status === "approved";
 
-export const reviewNotice =
-  "نسخة تجريبية للمراجعة: النصوص منقولة من منتج «حصن الطفل»، والمعاني والأسئلة لم تعتمد بعد من مراجع شرعي مسمّى.";
-export const scopeNotice =
-  // Return to «تعرض 4 نصوص ومنسكاً واحداً» when the manasik item arrives.
-  "هذه نسخة تجريبية تعرض 4 نصوص، والبنية تتسع لحزم أخرى.";
+export const reviewNotice = COPY.review.noticePreview;
+// Update COPY.review.scope when the manasik item arrives.
+export const scopeNotice = COPY.review.scope;

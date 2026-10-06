@@ -73,7 +73,7 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
   await page.goto(qindeel);
   await expect(page.locator("[data-section]")).toHaveCount(3);
   await expect(page.getByTestId("scope-note")).toHaveText(
-    "هذه نسخة تجريبية تعرض 4 نصوص، والبنية تتسع لحزم أخرى.",
+    "نسخة تجريبية فيها 4 أذكار، وتُضاف أذكار أخرى لاحقًا.",
   );
   await expect(page.locator("#child-age option")).toHaveCount(8);
   await expect(page.locator("#child-age option").first()).toHaveAttribute("value", "5");
@@ -149,7 +149,7 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
   await page.locator("#book-question").fill("هل يجوز أن أفطر؟");
   await page.getByRole("button", { name: "اسأل", exact: true }).click();
   await expect(page.locator(".question-answer")).toContainText(
-    "خارج محتوى كتابنا",
+    "ليس عن كتابنا",
   );
   await page.getByRole("region", { name: "قارئ الكتاب" }).focus();
   await page.keyboard.press("End");

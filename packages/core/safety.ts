@@ -1,3 +1,4 @@
+import { COPY } from "../../apps/qindeel/lib/copy";
 export function normalize(text: string): string {
   return text
     .normalize("NFKC")
@@ -156,8 +157,7 @@ export function isRestricted(text: string) {
 }
 export const crisisMessage =
   "يبدو أن ما تمرّ به يحتاج إلى دعم بشري مباشر. إذا كنت في خطر الآن أو تخشى أن تؤذي نفسك أو غيرك، اتصل بالطوارئ المحلية أو توجّه إلى أقرب قسم طوارئ. تواصل الآن مع شخص تثق به واطلب منه البقاء معك، وابتعد عن أي شيء قد تستخدمه لإيذاء نفسك. هذه الخدمة لا تراقب الحالات ولا تستطيع إرسال مساعدة. في السعودية يمكنك الاتصال بوزارة الصحة على 937 للإرشاد الصحي، وفي البلدان الأخرى تواصل مع الخدمات المحلية أو دليل findahelpline.com.";
-export const childRefusal =
-  "هذا السؤال خارج محتوى كتابنا، ولا أستطيع إصدار حكم ديني أو تأليف نص. اسأل والدك أو والدتك، ويمكنكما الرجوع إلى أحد أهل العلم. نستطيع معًا مراجعة معنى الدرس الموجود.";
+export const childRefusal = COPY.ask.refusal;
 export function safeGeneratedText(
   text: string,
   kind: "introduction" | "explanation",

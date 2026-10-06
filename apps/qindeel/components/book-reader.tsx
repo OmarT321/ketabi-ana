@@ -23,6 +23,7 @@ import type {
 } from "@platform/core/types";
 import type { BookImages, SceneImage } from "@platform/core/illustrations";
 import { ChildFigure, Scene } from "./scene";
+import { COPY } from "@/lib/copy";
 import { request } from "./client-api";
 
 export type ReaderProfile = {
@@ -36,8 +37,7 @@ type Page =
   | { kind: "closing" };
 const ar = (value: number) => value.toLocaleString("ar-SA");
 const named = (value: string, name: string) => value.replaceAll("{name}", name);
-export const PARENT_LINE =
-  "النصوص منقولة من مصادرها من منتج «حصن الطفل»، والمعاني من إعداد فريق المشروع وقيد المراجعة الشرعية، والشرح المعروض يُصاغ آلياً من هذه المعاني بلغة تناسب عمر الطفل. ولأي سؤال اسأل والديك أو أحد أهل العلم.";
+export const PARENT_LINE = COPY.book.parentLine;
 
 export function ReviewBadge({ lessons }: { lessons: readonly Lesson[] }) {
   return lessons.some((lesson) => !isApproved(lesson)) ? (
@@ -111,20 +111,20 @@ export function BookReader({
   const current = visiblePages[0];
   const progress =
     current && current.kind !== "closing"
-      ? `الموقف ${ar(current.item + 1)} من ${ar(story.items.length)}`
+      ? COPY.reader.situation(current.item + 1, story.items.length)
       : null;
   const pageLabel =
     page === 0
-      ? "غلاف الكتاب"
+      ? COPY.reader.cover
       : wide && visiblePages.length > 1
-        ? `الصفحتان ${ar(page)} و${ar(page + 1)} من ${ar(pages.length)}`
-        : `الصفحة ${ar(page)} من ${ar(pages.length)}`;
+        ? COPY.reader.spread(page, pages.length)
+        : COPY.reader.page(page, pages.length);
   const nextLabel =
     current && current.kind !== "closing" && wide
       ? current.item + 1 < story.items.length
-        ? "الموقف التالي"
-        : "الختام"
-      : "التالية";
+        ? COPY.reader.nextSituation
+        : COPY.reader.toClosing
+      : COPY.reader.next;
 
   return (
     <div className="book-reader" data-testid="book-reader">
@@ -143,7 +143,7 @@ export function BookReader({
               aria-pressed={largeText}
               onClick={() => setLargeText((value) => !value)}
             >
-              تكبير الخط
+              {COPY.reader.increaseText}
             </button>
             <button
               type="button"
@@ -151,19 +151,20 @@ export function BookReader({
               onClick={() => window.print()}
             >
               <Download size={17} />
-              <span>طباعة الكتاب</span>
+              <span>{COPY.reader.print}</span>
             </button>
             <button type="button" className="tool-button" onClick={onEdit}>
               <RotateCcw size={16} />
-              <span>كتاب جديد</span>
+              <span>{COPY.reader.newBook}</span>
             </button>
+            <small className="print-note">{COPY.reader.printNote}</small>
           </div>
         </div>
         <div
           ref={reader}
           className={`reading-desk ${largeText ? "large-text" : ""}`}
           role="region"
-          aria-label="قارئ الكتاب"
+          aria-label={COPY.reader.region}
           tabIndex={0}
           onKeyDown={(event) => {
             if (
@@ -219,15 +220,15 @@ export function BookReader({
             </div>
           )}
         </div>
-        <nav className="page-controls" aria-label="تقليب صفحات الكتاب">
+        <nav className="page-controls" aria-label={COPY.reader.nav}>
           <button
             type="button"
-            aria-label="الصفحة السابقة"
+            aria-label={COPY.reader.previousLabel}
             onClick={previous}
             disabled={page === 0}
           >
             <ArrowRight size={20} />
-            <span>السابقة</span>
+            <span>{COPY.reader.previous}</span>
           </button>
           <div>
             <span role="status" aria-live="polite" aria-atomic="true">
@@ -237,7 +238,7 @@ export function BookReader({
           </div>
           <button
             type="button"
-            aria-label="الصفحة التالية"
+            aria-label={COPY.reader.nextLabel}
             onClick={next}
             disabled={page >= lastPage}
           >
@@ -267,7 +268,7 @@ export function BookReader({
 }
 
 const BOOK_ART = "/book";
-export const COVER_LINE = "أذكاري اليومية رفيقي كل يوم";
+export const COVER_LINE = COPY.book.coverLine;
 
 /** Layer 2: the header art. The situation's own image when it has arrived;
  * otherwise the logo alone and the title drawn as text in the same place. */
@@ -311,20 +312,20 @@ function BookCover({
       <div className="cover-child">
         {coverChild ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={coverChild} alt={`شخصية ${profile.name}`} />
+          <img src={coverChild} alt={COPY.book.coverChild(profile.name)} />
         ) : (
-          <ChildFigure gender={profile.gender} label={`شخصية ${profile.name}`} />
+          <ChildFigure gender={profile.gender} label={COPY.book.coverChild(profile.name)} />
         )}
       </div>
-      <span className="cover-mark" aria-label="قصتي">
-        قصتي
+      <span className="cover-mark" aria-label={COPY.book.coverMark}>
+        {COPY.book.coverMark}
       </span>
       <div className="cover-badge">
         <ReviewBadge lessons={story.items.map((entry) => entry.lesson)} />
       </div>
       {onOpen && (
         <button type="button" className="cover-open" onClick={onOpen}>
-          افتح الكتاب
+          {COPY.book.open}
           <ArrowLeft size={20} />
         </button>
       )}
@@ -342,7 +343,7 @@ function Illustration({
   image: SceneImage | undefined;
 }) {
   const [failed, setFailed] = useState(false);
-  const label = `رسم لموقف ${entry.lesson.situation}`;
+  const label = COPY.book.sceneLabel(entry.lesson.situation);
   if (image?.mode === "generated" && !failed)
     return (
       // eslint-disable-next-line @next/next/no-img-element
@@ -384,12 +385,15 @@ function BookPage({
   const top =
     item.kind === "text"
       ? item.entry.lesson.top_layer
-      : { image: null, title: item.kind === "meaning" ? "ماذا يعني؟" : "ما تعلّمتَه اليوم" };
+      : {
+          image: null,
+          title: item.kind === "meaning" ? COPY.book.meaningTitle : COPY.book.closingTitle,
+        };
   return (
     <article
       className={`paper-leaf page-${item.kind}${dua ? " has-dua" : ""}`}
       data-testid="book-page"
-      aria-label={`الصفحة ${ar(number)}: ${top.title}`}
+      aria-label={COPY.reader.pageLabel(number, top.title)}
     >
       {/* Layer 1: background. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -426,8 +430,8 @@ function BookPage({
             </div>
             <small className="source-note">
               {item.entry.mode === "generated"
-                ? "الشرح مصوغ آلياً من المعنى المدوَّن"
-                : "المعنى كما كُتب في المصدر"}
+                ? COPY.book.explanationGenerated
+                : COPY.book.explanationAsWritten}
             </small>
           </>
         )}
@@ -504,10 +508,10 @@ function QuestionBox({
     } catch (cause) {
       setError(
         controller.signal.aborted
-          ? "طال الانتظار. حاول مرة أخرى بسؤال أقصر."
+          ? COPY.ask.slow
           : cause instanceof Error
             ? cause.message
-            : "تعذّر إرسال السؤال.",
+            : COPY.ask.failed,
       );
     } finally {
       window.clearTimeout(timeout);
@@ -519,10 +523,10 @@ function QuestionBox({
   }
   return (
     <details className="question-box">
-      <summary>لديّ سؤال عن معنى في الكتاب</summary>
+      <summary>{COPY.ask.summary}</summary>
       <form onSubmit={ask}>
         <div className="form-field">
-          <label htmlFor="question-lesson">عن أيّ نص؟</label>
+          <label htmlFor="question-lesson">{COPY.ask.lessonLabel}</label>
           <select
             id="question-lesson"
             value={lessonId}
@@ -540,10 +544,10 @@ function QuestionBox({
             ))}
           </select>
         </div>
-        <label htmlFor="book-question">نكتب سؤالنا برفقة أحد الكبار</label>
+        <label htmlFor="book-question">{COPY.ask.questionLabel}</label>
         <textarea
           id="book-question"
-          placeholder="ما معنى هذا الذكر؟"
+          placeholder={COPY.ask.placeholder}
           value={question}
           onChange={(event) => {
             setQuestion(event.target.value);
@@ -554,7 +558,7 @@ function QuestionBox({
           disabled={busy}
         />
         <div className="question-bottom">
-          <small>عن النص ومعناه فقط، دون معلومات شخصية.</small>
+          <small>{COPY.ask.hint}</small>
           <button
             className="button"
             type="submit"
@@ -565,7 +569,7 @@ function QuestionBox({
             ) : (
               <Send size={17} />
             )}
-            {busy ? "نبحث في المعنى…" : "اسأل"}
+            {busy ? COPY.ask.busy : COPY.ask.submit}
           </button>
         </div>
       </form>

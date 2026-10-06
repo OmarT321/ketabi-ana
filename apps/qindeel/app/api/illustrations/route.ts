@@ -1,3 +1,4 @@
+import { COPY } from "@/lib/copy";
 import { z } from "zod";
 import { getBookImages } from "@platform/core/server";
 import { body, limit, json, failure } from "@platform/core/http";
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
     const input = await body(request, schema);
     await limit(request);
     const result = await getBookImages(input);
-    return result ? json(result) : json({ error: "تعذّر تجهيز صور هذا الكتاب." }, 404);
+    return result ? json(result) : json({ error: COPY.service.picturesMissing }, 404);
   } catch (error) {
     return failure(error);
   }

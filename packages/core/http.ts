@@ -1,5 +1,6 @@
 import { createHmac } from "node:crypto";
 import type { ZodType } from "zod";
+import { COPY } from "../../apps/qindeel/lib/copy";
 
 export class HttpError extends Error {
   constructor(
@@ -24,14 +25,14 @@ export async function body<T>(
   schema: ZodType<T>,
 ): Promise<T> {
   if (!request.headers.get("content-type")?.includes("application/json"))
-    throw new HttpError(415, "يلزم إرسال طلب بصيغة JSON.");
+    throw new HttpError(415, COPY.service.badRequest);
   const origin = request.headers.get("origin");
   if (origin && origin !== new URL(request.url).origin)
-    throw new HttpError(403, "مصدر الطلب غير مسموح.");
+    throw new HttpError(403, COPY.service.notAllowed);
   if (Number(request.headers.get("content-length") || 0) > 8192)
-    throw new HttpError(413, "الطلب أطول من الحد المسموح.");
+    throw new HttpError(413, COPY.service.tooLong);
   const reader = request.body?.getReader();
-  if (!reader) throw new HttpError(400, "الطلب فارغ.");
+  if (!reader) throw new HttpError(400, COPY.service.badRequest);
   const chunks: Uint8Array[] = [];
   let size = 0;
   for (;;) {
@@ -40,7 +41,7 @@ export async function body<T>(
     size += value.length;
     if (size > 8192) {
       await reader.cancel();
-      throw new HttpError(413, "الطلب أطول من الحد المسموح.");
+      throw new HttpError(413, COPY.service.tooLong);
     }
     chunks.push(value);
   }
@@ -54,11 +55,11 @@ export async function body<T>(
   try {
     input = JSON.parse(new TextDecoder().decode(bytes));
   } catch {
-    throw new HttpError(400, "تعذّر قراءة الطلب.");
+    throw new HttpError(400, COPY.service.badRequest);
   }
   const parsed = schema.safeParse(input);
   if (!parsed.success)
-    throw new HttpError(400, "تحقق من المدخلات وحاول مرة أخرى.");
+    throw new HttpError(400, COPY.service.badRequest);
   return parsed.data;
 }
 const localBuckets = new Map<string, { count: number; until: number }>();
@@ -82,19 +83,16 @@ export async function limit(request: Request) {
         cache: "no-store",
       });
       if (response.status === 429)
-        throw new HttpError(
-          429,
-          "وصلت إلى الحد المؤقت للطلبات. انتظر قليلًا ثم حاول مجددًا.",
-        );
+        throw new HttpError(429, COPY.service.busy);
       if (!response.ok) throw new Error("quota_unavailable");
       return;
     } catch (error) {
       if (error instanceof HttpError) throw error;
       if (process.env.NODE_ENV === "production")
-        throw new HttpError(503, "الخدمة غير متاحة مؤقتًا. حاول بعد قليل.");
+        throw new HttpError(503, COPY.service.unavailable);
     }
   } else if (process.env.NODE_ENV === "production")
-    throw new HttpError(503, "الخدمة قيد الإعداد. حاول لاحقًا.");
+    throw new HttpError(503, COPY.service.notReady);
   const now = Date.now();
   for (const [key, bucket] of localBuckets)
     if (bucket.until <= now) localBuckets.delete(key);
@@ -103,10 +101,10 @@ export async function limit(request: Request) {
   bucket.count++;
   localBuckets.set(key, bucket);
   if (bucket.count > 30)
-    throw new HttpError(429, "طلبات كثيرة. انتظر دقيقة ثم حاول مجددًا.");
+    throw new HttpError(429, COPY.service.busy);
 }
 export function failure(error: unknown) {
   if (error instanceof HttpError)
     return json({ error: error.message }, error.status);
-  return json({ error: "حدث خطأ مؤقت. حاول مرة أخرى." }, 503);
+  return json({ error: COPY.service.temporary }, 503);
 }

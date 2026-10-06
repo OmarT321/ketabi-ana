@@ -210,10 +210,7 @@ export default function LearningApp() {
               </a>
             </div>
             <div className="intro-book" aria-hidden="true">
-              <div className="mini-cover">
-                <span>{COPY.intro.miniCoverName}</span>
-                <small>{COPY.intro.miniCoverOpen}</small>
-              </div>
+              <div className="mini-cover" />
             </div>
           </section>
 
@@ -226,7 +223,17 @@ export default function LearningApp() {
               <span className="section-label">{COPY.intro.howLabel}</span>
               <h2 id="how-title">{COPY.intro.howTitle}</h2>
             </div>
-            <p>{COPY.intro.howBody}</p>
+            <ol className="how-steps">
+              {COPY.intro.howSteps.map((step) => (
+                <li key={step.number}>
+                  <span className="how-step-number" aria-hidden="true">
+                    {step.number}
+                  </span>
+                  <h3>{step.title}</h3>
+                  <p>{step.body}</p>
+                </li>
+              ))}
+            </ol>
           </section>
 
           <section

@@ -241,10 +241,6 @@ legend {
   width: 1px;
   background: #ffffff1c;
 }
-.mini-cover > span {
-  font-size: 9px;
-  letter-spacing: 1px;
-}
 .mini-cover .scene {
   display: block;
   width: 100%;
@@ -253,19 +249,12 @@ legend {
   overflow: hidden;
   opacity: 0.96;
 }
-.mini-cover small {
-  font-size: 9px;
-  display: block;
-  margin-top: 13px;
-}
 .how-section {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 35px;
-  padding: 25px 26px;
+  gap: 22px;
+  padding: 25px 26px 28px;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  align-items: center;
 }
 .how-section .section-label {
   margin-bottom: 5px;
@@ -275,11 +264,39 @@ legend {
   font-weight: 500;
   letter-spacing: -0.3px;
 }
-.how-section > p {
+.how-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+.how-steps li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 13px;
+  align-items: baseline;
+}
+.how-step-number {
+  grid-row: span 2;
+  color: var(--plum);
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1;
+}
+.how-steps h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.how-steps p {
+  grid-column: 2;
+  margin: 3px 0 0;
   font-size: 13px;
-  line-height: 2;
+  line-height: 1.9;
   color: var(--muted);
-  max-width: 470px;
 }
 .workspace {
   padding: 38px 0 0;
@@ -1236,17 +1253,17 @@ details > summary::marker {
     width: 180px;
     padding: 16px 14px 12px;
   }
-  .mini-cover small {
-    font-size: 8px;
-  }
   .how-section {
-    gap: 22px;
+    gap: 18px;
     padding: 23px 0;
   }
   .how-section h2 {
     font-size: 19px;
   }
-  .how-section > p {
+  .how-steps {
+    gap: 20px;
+  }
+  .how-steps p {
     font-size: 12px;
   }
   .workspace {
@@ -1360,15 +1377,15 @@ details > summary::marker {
     margin-bottom: 11px;
   }
   .how-section {
-    grid-template-columns: 1fr;
-    gap: 9px;
+    gap: 16px;
     padding: 22px 0;
   }
   .how-section h2 {
     font-size: 21px;
   }
-  .how-section > p {
-    font-size: 12px;
+  .how-steps {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
   .workspace-heading {
     margin-bottom: 18px;

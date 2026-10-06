@@ -75,12 +75,16 @@ export default function LearningApp() {
   }, [loadCatalog]);
   useEffect(() => () => generation.current?.abort(), []);
 
-  function choosePhoto(file: File | undefined) {
+  async function choosePhoto(file: File | undefined) {
     setPhoto(null);
     setPhotoError("");
     if (!file) return;
     if (!["image/jpeg", "image/png"].includes(file.type)) return setPhotoError(COPY.form.photoType);
     if (file.size > 2 * 1024 * 1024) return setPhotoError(COPY.form.photoSize);
+    // The type is read from the file's first bytes, not its name: jpeg FF D8 FF, png 89 50 4E 47.
+    const head = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+    const magic = file.type === "image/png" ? [0x89, 0x50, 0x4e, 0x47] : [0xff, 0xd8, 0xff];
+    if (!magic.every((byte, i) => head[i] === byte)) return setPhotoError(COPY.form.photoType);
     const reader = new FileReader();
     reader.onload = () => setPhoto(typeof reader.result === "string" ? reader.result : null);
     reader.readAsDataURL(file);
@@ -337,6 +341,29 @@ export default function LearningApp() {
                       />
                     </div>
                   </div>
+                  {allowUpload && (
+                    <div className="form-field photo-field">
+                      <p className="photo-notice" id="child-photo-notice">
+                        {COPY.form.photoNotice}
+                      </p>
+                      <label htmlFor="child-photo">
+                        {COPY.form.photoLabel} <span>{COPY.form.optional}</span>
+                      </label>
+                      <input
+                        id="child-photo"
+                        type="file"
+                        accept="image/jpeg,image/png"
+                        aria-describedby="child-photo-notice child-photo-hint"
+                        onChange={(event) => void choosePhoto(event.target.files?.[0])}
+                      />
+                      <small id="child-photo-hint">{COPY.form.photoHint}</small>
+                      {photoError && (
+                        <p role="alert" className="error-box">
+                          {photoError}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <fieldset className="gender-field">
                     <legend>
                       {COPY.form.childLegend}
@@ -364,26 +391,6 @@ export default function LearningApp() {
                       ))}
                     </div>
                   </fieldset>
-                  {allowUpload && (
-                    <div className="form-field photo-field">
-                      <label htmlFor="child-photo">
-                        {COPY.form.photoLabel} <span>{COPY.form.optional}</span>
-                      </label>
-                      <input
-                        id="child-photo"
-                        type="file"
-                        accept="image/jpeg,image/png"
-                        aria-describedby="child-photo-hint"
-                        onChange={(event) => choosePhoto(event.target.files?.[0])}
-                      />
-                      <small id="child-photo-hint">{COPY.form.photoHint}</small>
-                      {photoError && (
-                        <p role="alert" className="error-box">
-                          {photoError}
-                        </p>
-                      )}
-                    </div>
-                  )}
                   {catalogBusy ? (
                     <p role="status" className="inline-state">
                       <LoaderCircle className="spin" size={18} />

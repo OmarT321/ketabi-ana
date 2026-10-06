@@ -348,6 +348,12 @@ textarea {
   color: var(--muted);
   line-height: 1.8;
 }
+.photo-field .photo-notice {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--plum-dark);
+}
 .avatar-options,
 .pack-options {
   display: grid;

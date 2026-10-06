@@ -29,11 +29,17 @@ export function logImageCheckFailure(kind: "child-on-white" | "scene", failed: I
   emit({ event: "image_check_failed", kind, failed });
 }
 
+/** The same-child comparison returned no output twice: no verdict for these pictures. */
+export function logSameChildNoOutput(pictures: number) {
+  emit({ event: "same_child_no_output", pictures });
+}
+
 /** The single write: only the typed records above reach it. */
 function emit(
   record:
     | ({ event: "explanation_rejected" } & RejectionRecord)
-    | { event: "image_check_failed"; kind: "child-on-white" | "scene"; failed: ImageCheckFlag[] },
+    | { event: "image_check_failed"; kind: "child-on-white" | "scene"; failed: ImageCheckFlag[] }
+    | { event: "same_child_no_output"; pictures: number },
 ) {
   console.warn(JSON.stringify(record));
 }

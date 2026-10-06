@@ -7,7 +7,10 @@ import {
   outfitPreset,
   NEGATIVE_COMMON,
   NEGATIVE_WHITE_BACKGROUND,
+  POSE_PRESET,
   SAME_CHILD,
+  SAME_COLORS,
+  SCENE_POSE,
   seedFor,
   type ImageDeps,
 } from "../packages/core/illustrations";
@@ -16,7 +19,9 @@ import type { Lesson } from "../packages/core/types";
 
 type Call = { op: string; prompt?: string; seed?: number; referenceUrl?: string; url?: string };
 /** Simulated fal + vision providers. Nothing here touches the network. */
-function fakeDeps(opts: { failCheck?: (url: string) => boolean; sameChild?: (url: string) => boolean } = {}) {
+function fakeDeps(
+  opts: { failCheck?: (url: string) => boolean; sameChild?: (url: string) => boolean | null } = {},
+) {
   const calls: Call[] = [];
   let n = 0;
   const deps: ImageDeps = {
@@ -130,6 +135,26 @@ test("a picture of a different child is redone once from the same reference, the
   const ids = book.map((l) => l.id);
   const failed = ids.filter((id) => result.scenes[id] === null);
   assert.equal(failed.length, 1, "still different after the redo: drawn fallback");
+});
+
+test("scenes repeat the outfit with the same colours and keep the hands closed or out of sight", async () => {
+  const { deps, calls } = fakeDeps();
+  await illustrateBook({ ...input, lessons: book }, deps);
+  assert.ok(calls[0].prompt!.includes(`Pose: ${POSE_PRESET.standing}`), "the reference keeps its approved pose");
+  assert.ok(!calls[0].prompt!.includes(SAME_COLORS));
+  const scenes = calls.filter((c) => c.op === "withReference");
+  scenes.forEach((c, i) => {
+    assert.ok(c.prompt!.includes(outfitPreset("girl")));
+    assert.ok(c.prompt!.includes(`${SAME_CHILD}, ${SAME_COLORS}.`));
+    assert.ok(c.prompt!.includes(`Pose: ${SCENE_POSE[book[i].pose]}`));
+  });
+});
+
+test("no verdict from the same-child comparison keeps the picture and redoes nothing", async () => {
+  const { deps, calls } = fakeDeps({ sameChild: () => null });
+  const result = await illustrateBook({ ...input, lessons: book }, deps);
+  assert.equal(calls.filter((c) => c.op === "withReference").length, 3);
+  for (const l of book) assert.equal(result.scenes[l.id]?.mode, "generated");
 });
 
 test("a failed reference means no generated picture at all", async () => {

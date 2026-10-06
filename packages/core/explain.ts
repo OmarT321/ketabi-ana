@@ -41,6 +41,8 @@ export type Explanation = {
   text: string;
   mode: "generated" | "prepared";
   rejections: ExplanationRejection[];
+  /** Error class and HTTP status of a provider failure; never message text. */
+  providerError?: string;
 };
 
 const textModel = () => process.env.AI_TEXT_MODEL || "openai/gpt-5.6-luna";
@@ -166,7 +168,13 @@ export async function generateExplanation(
         else if (verdict.data.omitsMeaning) reason = "omission";
       }
     } catch (error) {
-      if (!(error instanceof SchemaMismatch)) return prepared(rejections);
+      if (!(error instanceof SchemaMismatch)) {
+        const e = error as { name?: string; statusCode?: number };
+        return {
+          ...prepared(rejections),
+          providerError: [e?.name ?? "Error", e?.statusCode].filter(Boolean).join(" "),
+        };
+      }
       reason = "schema";
     }
     if (!reason) return { text: candidate, mode: "generated", rejections };

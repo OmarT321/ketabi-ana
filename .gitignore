@@ -13,5 +13,3 @@ dist/
 assets/private/
 .understand-anything/
 CLAUDE.local.md
-# Temporary: old content file awaiting manual deletion; remove this line after.
-packages/core/data/lessons.json

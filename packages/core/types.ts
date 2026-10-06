@@ -8,6 +8,10 @@ export const TODO_REVIEW = "TODO_REVIEW";
 export type AgeBand = "young" | "older";
 export type Gender = "boy" | "girl";
 export type Pose = "standing" | "sitting" | "walking";
+/** generated: the whole scene is generated with the child in it.
+ * composite: a sacred place — never generated and never sent to any model; an
+ * approved ready background with the child generated alone and composited on it. */
+export type SceneMode = "generated" | "composite";
 export type SceneName =
   | "sleep"
   | "morning"
@@ -32,6 +36,7 @@ export type Lesson = {
   readonly answer: number;
   readonly pose: Pose;
   readonly scene: SceneName;
+  readonly scene_mode: SceneMode;
   readonly review: Review;
 };
 export type LessonResponse = {

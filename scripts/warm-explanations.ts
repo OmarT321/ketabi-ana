@@ -100,10 +100,11 @@ run: for (const lesson of lessons)
           reasons: result.rejections.length ? result.rejections : ["provider"],
           at: new Date().toISOString(),
         });
-        console.log(`rejected ${label}: ${result.rejections.join(",") || "provider error or timeout"}`);
+        console.log(`rejected ${label}: ${result.rejections.join(",") || `provider error or timeout (${result.providerError})`}`);
+        if (process.env.WARM_DEBUG) console.log(result);
         stopReason = result.rejections.length
           ? `${label} rejected on both attempts`
-          : `${label}: provider error or timeout`;
+          : `${label}: provider error or timeout (${result.providerError})`;
         break run;
       }
       if (combosWithRejection > maxRejectedCombos) {

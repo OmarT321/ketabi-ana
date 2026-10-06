@@ -13,6 +13,7 @@
     "answer": 0,
     "pose": "standing",
     "scene": "morning",
+    "scene_mode": "generated",
     "review": { "status": "pending", "reviewer": null, "date": null }
   },
   {
@@ -29,6 +30,7 @@
     "answer": 0,
     "pose": "standing",
     "scene": "home",
+    "scene_mode": "generated",
     "review": { "status": "pending", "reviewer": null, "date": null }
   },
   {
@@ -45,6 +47,7 @@
     "answer": 0,
     "pose": "sitting",
     "scene": "food",
+    "scene_mode": "generated",
     "review": { "status": "pending", "reviewer": null, "date": null }
   },
   {
@@ -61,6 +64,7 @@
     "answer": 0,
     "pose": "sitting",
     "scene": "food",
+    "scene_mode": "generated",
     "review": { "status": "pending", "reviewer": null, "date": null }
   }
 ]

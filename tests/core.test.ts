@@ -95,6 +95,7 @@ test("demo scope: 4 adhkar in 3 situations, empty manasik pack, no invented revi
     assert.ok(item.answer >= 0 && item.answer < item.options.length);
     assert.notEqual(item.meaning_young, item.meaning_older);
     assert.ok(["standing", "sitting", "walking"].includes(item.pose));
+    assert.equal(item.scene_mode, "generated", "no sacred-place scene in the demo");
   }
 });
 test("two items in one situation keep distinct ids and texts", () => {

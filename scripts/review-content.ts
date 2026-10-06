@@ -9,6 +9,7 @@ import type { Lesson } from "../packages/core/types";
 
 const SCENES = ["sleep", "morning", "food", "travel", "home", "mosque", "pilgrimage"];
 const POSES = ["standing", "sitting", "walking"];
+const SCENE_MODES = ["generated", "composite"];
 const DECLARED = { adhkar: 4, situations: 3, manasik: 1 };
 const FIQH = ["يجب", "لا يجب", "يجوز", "لا يجوز", "سنه", "مكروه", "واجب", "حرام", "بدعه"];
 const PROMISE_OR_THREAT = ["الجنه", "النار", "عذاب", "ثواب", "اجر", "يعاقب", "عقاب"];
@@ -66,6 +67,7 @@ for (const l of lessons) {
   if (!Number.isInteger(l.answer) || l.answer < 0 || l.answer >= l.options.length)
     note(l.id, "البنية", `answer = ${l.answer} خارج الخيارات`);
   if (!SCENES.includes(l.scene)) note(l.id, "البنية", `المشهد «${l.scene}» غير موجود في scene.tsx`);
+  if (!SCENE_MODES.includes(l.scene_mode)) note(l.id, "البنية", `scene_mode «${l.scene_mode}» غير معروف`);
   if (!POSES.includes(l.pose)) note(l.id, "البنية", `الوضعية «${l.pose}» خارج القائمة المقفولة`);
 }
 const ids = lessons.map((l) => l.id);
@@ -88,7 +90,7 @@ const items = lessons.map((l, i) => `## ${i + 1}. ${l.situation} — \`${l.id}\`
 | الموقف | ${l.situation} |
 | المصدر | ${show(l.source)} |
 | الدرجة | ${show(l.grade)} |
-| المشهد · الوضعية | ${l.scene} · ${l.pose} |
+| المشهد · نوعه · الوضعية | ${l.scene} · ${l.scene_mode} · ${l.pose} |
 | حالة المراجعة | ${status(l)} |
 
 **النص:**

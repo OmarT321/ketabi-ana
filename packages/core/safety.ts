@@ -261,14 +261,24 @@ function stems(word: string) {
  * detect overlap and is never sent to the model. */
 export function checkExplanationText(
   candidate: string,
-  { text, meaning }: { text: string; meaning: string },
+  {
+    text,
+    meaning,
+    replyWords = 0,
+  }: {
+    text: string;
+    meaning: string;
+    /** Word count of the child's reply when one was sent: the length limit
+     * rises by exactly this much (owner's decision a.5), nothing else changes. */
+    replyWords?: number;
+  },
 ): ExplanationRejection | null {
   const cleaned = candidate.replaceAll("{name}", " ").trim();
   if (cleaned.length < 12 || candidate.length > 700) return "length";
   const words = normalize(cleaned).split(" ").filter(Boolean);
   const meaningWords = normalize(meaning).split(" ").filter(Boolean);
   // Gender and age wording may lengthen a sentence a little; much longer means added content.
-  if (words.length > meaningWords.length * 1.6 + 8) return "addition";
+  if (words.length > meaningWords.length * 1.6 + 8 + replyWords) return "addition";
   if (QUOTE_MARKS.test(cleaned) || QUOTE_PHRASES.test(` ${normalize(cleaned)} `))
     return "quotation";
   for (const word of words)

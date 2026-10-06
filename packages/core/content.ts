@@ -6,7 +6,8 @@ import { TODO_REVIEW, type AgeBand, type Lesson } from "./types";
 const freeze = (item: Lesson): Lesson =>
   Object.freeze({
     ...item,
-    options: Object.freeze([...item.options]),
+    hint_chips: Object.freeze([...item.hint_chips]),
+    top_layer: Object.freeze({ ...item.top_layer }),
     review: Object.freeze({ ...item.review }),
   });
 export const packs = {
@@ -26,6 +27,17 @@ export const validAge = (age: number) =>
 export const ageBand = (age: number): AgeBand => (age <= 8 ? "young" : "older");
 export const meaningFor = (lesson: Lesson, band: AgeBand) =>
   band === "young" ? lesson.meaning_young : lesson.meaning_older;
+
+/** The question step's wording is fixed per age band (owner's decision). */
+export const STEP_QUESTION: Record<AgeBand, string> = {
+  young: "برأيك، لماذا نقول هذا؟",
+  older: "في رأيك، ما معنى هذا الذكر، ولماذا نقوله في هذا الموقف؟",
+};
+/** Ready replies shown in the step: none until the owner's chips arrive. */
+export const hintChipsFor = (lesson: Lesson) =>
+  lesson.hint_chips_ready ? lesson.hint_chips : [];
+/** Typed replies are offered to the older band only. */
+export const MAX_REPLY_LENGTH = 200;
 
 export const isPlaceholder = (value: string) => value === TODO_REVIEW;
 export const SOURCE_PENDING = "المصدر قيد التوثيق";

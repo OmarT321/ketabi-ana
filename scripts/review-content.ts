@@ -62,10 +62,11 @@ for (const l of lessons) {
   }
   for (const run of sharedRuns(l.text, l.question))
     note(l.id, "القاعدة 9 (السؤال عن اللفظ)", `السؤال يشترك مع النص في «${run}»`);
-  if (l.options.length !== 3) note(l.id, "القاعدة 10", `عدد الخيارات ${l.options.length} والمطلوب 3`);
-  if (new Set(l.options).size !== l.options.length) note(l.id, "القاعدة 10", "خيارات مكررة");
-  if (!Number.isInteger(l.answer) || l.answer < 0 || l.answer >= l.options.length)
-    note(l.id, "البنية", `answer = ${l.answer} خارج الخيارات`);
+  if (l.hint_chips.length !== 3) note(l.id, "القاعدة 10", `عدد الرقاقات ${l.hint_chips.length} والمطلوب 3`);
+  if (new Set(l.hint_chips).size !== l.hint_chips.length) note(l.id, "القاعدة 10", "رقاقات مكررة");
+  if (!l.hint_chips_ready)
+    note(l.id, "القاعدة 10", "الرقاقات منقولة من خيارات السؤال القديم وتنتظر رقاقات المالك؛ لا تُعرض حتى hint_chips_ready = true");
+  if (!l.top_layer.image) note(l.id, "الأصول", `الطبقة العلوية لم تصل؛ يُرسم العنوان «${l.top_layer.title}» نصاً`);
   if (!SCENES.includes(l.scene)) note(l.id, "البنية", `المشهد «${l.scene}» غير موجود في scene.tsx`);
   if (!SCENE_MODES.includes(l.scene_mode)) note(l.id, "البنية", `scene_mode «${l.scene_mode}» غير معروف`);
   if (!POSES.includes(l.pose)) note(l.id, "البنية", `الوضعية «${l.pose}» خارج القائمة المقفولة`);
@@ -101,9 +102,11 @@ const items = lessons.map((l, i) => `## ${i + 1}. ${l.situation} — \`${l.id}\`
 
 **المعنى للأكبر (9–12):** ${l.meaning_older}
 
-**السؤال:** ${l.question}
+**السؤال (في الخطوة خارج الكتاب):** ${l.question}
 
-${l.options.map((o, k) => `${k + 1}. ${o}${k === l.answer ? " ✓" : ""}`).join("\n")}
+**الرقاقات${l.hint_chips_ready ? "" : " (لا تُعرض بعد)"}:** ${l.hint_chips.join(" · ")}
+
+**الطبقة العلوية:** ${l.top_layer.image ?? "عنوان مرسوم نصاً"} — «${l.top_layer.title}»
 `);
 
 const manualPath = "docs/content-review-notes.md";

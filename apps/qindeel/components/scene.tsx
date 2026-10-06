@@ -246,14 +246,37 @@ export function HeroIllustration() {
   );
 }
 
+/** The drawn child alone, for the cover when no generated picture is available. */
+export function ChildFigure({
+  gender,
+  label,
+}: {
+  gender: "boy" | "girl";
+  label: string;
+}) {
+  return (
+    <svg className="child-figure" viewBox="-50 -84 100 194" role="img" aria-label={label}>
+      <Child
+        x={0}
+        y={0}
+        girl={gender === "girl"}
+        color={gender === "girl" ? "#a094b4" : "#c28c65"}
+      />
+    </svg>
+  );
+}
+
 export function Scene({
   scene,
   avatar = "boy",
   compact = false,
+  hideChild = false,
 }: {
   scene: Lesson["scene"];
   avatar?: "boy" | "girl";
   compact?: boolean;
+  /** Composite path: the approved background only; the child is laid over it. */
+  hideChild?: boolean;
 }) {
   const dark = scene === "sleep";
   const labels = {
@@ -405,13 +428,13 @@ export function Scene({
           <path d="M266 270h133" stroke="#a17d63" strokeWidth="8" />
         </>
       )}
-      <Child
+      {!hideChild && <Child
         x={scene === "sleep" ? 189 : 164}
         y={scene === "sleep" ? 206 : 184}
         scale={scene === "sleep" ? 0.73 : 0.95}
         girl={avatar === "girl"}
         color={avatar === "girl" ? "#a094b4" : "#c28c65"}
-      />
+      />}
       <Plant x={421} y={272} scale={0.44} />
       <Star x={93} y={138} s={0.7} color={dark ? "#dcc393" : "#bc9d65"} />
       <Star x={224} y={69} s={0.5} color={dark ? "#ddc798" : "#ad9fb4"} />

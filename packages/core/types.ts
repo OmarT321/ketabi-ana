@@ -31,12 +31,18 @@ export type Lesson = {
   readonly grade: string;
   readonly meaning_young: string;
   readonly meaning_older: string;
+  /** Asked in the question step, outside the book. */
   readonly question: string;
-  readonly options: readonly string[];
-  readonly answer: number;
+  /** Three ready replies in the child's words; none is right or wrong. Shown
+   * only once hint_chips_ready is true (rules 9 and 10 of MEANING_RULES). */
+  readonly hint_chips: readonly string[];
+  readonly hint_chips_ready: boolean;
   readonly pose: Pose;
   readonly scene: SceneName;
   readonly scene_mode: SceneMode;
+  /** Page header art. image: a file in public/book, or null until it arrives;
+   * the title is then drawn as text in the same place. */
+  readonly top_layer: { readonly image: string | null; readonly title: string };
   readonly review: Review;
 };
 export type LessonResponse = {
@@ -46,7 +52,15 @@ export type LessonResponse = {
   imageUrl: string | null;
   imageMode: "generated" | "illustrated";
   reviewNotice: string;
+  /** Set when the child's typed reply failed the crisis check. The reply never
+   * left the server; the page shows the crisis message outside the book. */
+  replyCrisis?: string;
 };
+/** The child's reply in the question step. Used for one request, then forgotten. */
+export type ChildReply =
+  | { kind: "none" }
+  | { kind: "chip"; index: number }
+  | { kind: "text"; text: string };
 export type QuestionResponse = {
   status: "answered" | "refused" | "crisis";
   answer: string;

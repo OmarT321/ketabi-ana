@@ -35,11 +35,35 @@ test("API validates input and rejects cross-origin mutations", async ({
       })
     ).status(),
   ).toBe(400);
+  expect(
+    (
+      await request.post(`${qindeel}/api/lesson`, {
+        data: {
+          lessonId: "adhkar-waking",
+          age: 10,
+          gender: "boy",
+          reply: { kind: "text", text: "ا".repeat(201) },
+        },
+      })
+    ).status(),
+  ).toBe(400);
 });
+
+/** Answers the three question steps: the young band sees only «ما أعرف» and «تخطّي». */
+async function answerSteps(page: import("@playwright/test").Page, young: boolean) {
+  for (let i = 0; i < 3; i++) {
+    const step = page.getByTestId("question-step");
+    await expect(step.getByTestId("step-progress")).toHaveText(
+      `سؤال ${(i + 1).toLocaleString("ar-SA")} من ٣`,
+    );
+    if (young) await expect(step.locator("textarea")).toHaveCount(0);
+    await step.getByRole("button", { name: i % 2 ? "ما أعرف" : "تخطّي" }).click();
+  }
+}
 
 const texts = adhkar.map((item) => item.text);
 
-test("Kitabi Ana: three-item book, text and meaning pages, per-item question, print and name privacy", async ({
+test("Kitabi Ana: question steps outside the book, three-item book, print and privacy", async ({
   page,
 }, testInfo) => {
   const sent: string[] = [];
@@ -58,10 +82,27 @@ test("Kitabi Ana: three-item book, text and meaning pages, per-item question, pr
   await expect(page.getByRole("button", { name: "اصنع كتاب ليان" })).toBeDisabled();
   await page.getByRole("radio", { name: "بنت" }).check();
   await page.getByRole("button", { name: "اصنع كتاب ليان" }).click();
+  // Question steps, outside the book. Older band: fixed question, warning, optional typing.
+  const step = page.getByTestId("question-step");
+  await expect(step.getByTestId("step-progress")).toHaveText("سؤال ١ من ٣");
+  await expect(step.locator("h3")).toHaveText(
+    "في رأيك، ما معنى هذا الذكر، ولماذا نقوله في هذا الموقف؟",
+  );
+  await expect(step.locator(".step-warning")).toHaveText(
+    "اكتب بكلماتك، ولا تكتب اسمك ولا أي معلومة عنك.",
+  );
+  await step.locator("textarea").fill("لأن ليان تحب الصباح الجديد");
+  await step.getByRole("button", { name: "هذه إجابتي" }).click();
+  await expect(step.getByTestId("step-progress")).toHaveText("سؤال ٢ من ٣");
+  await step.getByRole("button", { name: "ما أعرف" }).click();
+  await expect(step.getByTestId("step-progress")).toHaveText("سؤال ٣ من ٣");
+  await step.getByRole("button", { name: "تخطّي" }).click();
   const reader = page.locator(".reader-screen");
   const cover = reader.getByTestId("book-cover");
   await expect(cover).toBeVisible({ timeout: 40_000 });
   await expect(cover).toContainText("كتاب ليان");
+  await expect(cover.getByTestId("child-name")).toHaveText("ليان");
+  await expect(cover).toContainText("أذكاري اليومية رفيقي كل يوم");
   await expect(cover.locator(".review-badge")).toHaveText("قيد المراجعة");
   await page.getByRole("button", { name: "افتح الكتاب", exact: true }).click();
   await expect(reader.getByTestId("book-page")).toHaveCount(2);
@@ -73,16 +114,12 @@ test("Kitabi Ana: three-item book, text and meaning pages, per-item question, pr
   const shown = (await textPage.locator(".sacred-text").innerText()).trim();
   const item = adhkar.find((x) => x.text === shown);
   expect(item, "text matches the content file exactly").toBeTruthy();
-  await expect(textPage.locator("h4")).toHaveText(`عند ${item!.situation} نقول:`);
-  await expect(textPage.locator(".quiz-card")).toHaveCount(0);
+  await expect(textPage.locator("h4")).toHaveText(item!.top_layer.title);
+  await expect(textPage.locator(".leaf-name")).toHaveText("ليان");
+  await expect(reader.locator(".quiz-card, .answer-options")).toHaveCount(0);
   await expect(meaningPage.locator("h4")).toHaveText("ماذا يعني؟");
   await expect(meaningPage.locator(".meaning-prose")).toHaveText(item!.meaning_older);
   await expect(meaningPage.locator(".source-note")).toHaveText("المعنى كما كُتب في المصدر");
-  await expect(meaningPage.locator(".quiz-question")).toHaveText(item!.question);
-  await meaningPage.locator(".answer-options button").nth(1).click();
-  await expect(meaningPage.locator(".quiz-feedback")).toContainText(
-    `نراجعها معًا: ${item!.options[item!.answer]}`,
-  );
   await page.screenshot({
     path: testInfo.outputPath("book-spread.png"),
     fullPage: true,
@@ -115,6 +152,10 @@ test("Kitabi Ana: three-item book, text and meaning pages, per-item question, pr
     "النصوص منقولة من مصادرها من منتج «حصن الطفل»",
   );
   expect(sent.join("")).not.toContain("ليان");
+  expect(sent.join(""), "the typed reply is sent once, with the name masked").toContain(
+    "لأن {name} تحب الصباح الجديد",
+  );
+  await expect(page.locator(".book-reader")).not.toContainText("تحب الصباح");
   await page.emulateMedia({ media: "print" });
   await expect(page.locator(".print-only")).toBeVisible();
   await expect(page.locator(".print-only .book-cover")).toBeVisible();
@@ -122,9 +163,10 @@ test("Kitabi Ana: three-item book, text and meaning pages, per-item question, pr
   const printed = await page.locator(".print-only .sacred-text").allInnerTexts();
   expect(printed).toHaveLength(3);
   for (const text of printed) expect(texts).toContain(text.trim());
+  expect(await page.locator(".print-only").innerText()).not.toContain("تحب الصباح");
   await page.pdf({
     path: testInfo.outputPath("book.pdf"),
-    format: "A4",
+    preferCSSPageSize: true,
     printBackground: true,
   });
 });
@@ -136,6 +178,7 @@ test("Kitabi Ana mobile: every page turns without overflow and the next book dif
   await page.goto(qindeel);
   await page.getByRole("radio", { name: "ولد" }).check();
   await page.getByRole("button", { name: "اصنع كتاب طفلي" }).click();
+  await answerSteps(page, true);
   await page.getByRole("button", { name: "افتح الكتاب", exact: true }).click();
   const reader = page.locator(".reader-screen");
   const firstBook: string[] = [];
@@ -163,6 +206,7 @@ test("Kitabi Ana mobile: every page turns without overflow and the next book dif
   await page.getByRole("button", { name: "كتاب جديد" }).click();
   await page.getByRole("radio", { name: "ولد" }).check();
   await page.getByRole("button", { name: "اصنع كتاب طفلي" }).click();
+  await answerSteps(page, true);
   await page.getByRole("button", { name: "افتح الكتاب", exact: true }).click();
   const secondBook: string[] = [];
   for (let i = 0; i < 3; i++) {

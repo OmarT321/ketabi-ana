@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, Check, LoaderCircle } from "lucide-react";
-import type { Gender, Lesson, LessonResponse } from "@platform/core/types";
+import type { ChildReply, Gender, Lesson, LessonResponse } from "@platform/core/types";
+import type { BookImages } from "@platform/core/illustrations";
 import { buildStoryBook, pickSession } from "@platform/core/story";
-import { MAX_AGE, MIN_AGE, scopeNotice } from "@platform/core/content";
+import { MAX_AGE, MIN_AGE, ageBand, scopeNotice } from "@platform/core/content";
+import { QuestionStep } from "./question-step";
 import { Header } from "./site-chrome";
 import { Scene } from "./scene";
 import { BookReader, ReviewBadge, type ReaderProfile } from "./book-reader";
@@ -24,6 +26,13 @@ export default function LearningApp() {
   // Declared by the parent; never inferred from the name or a photo.
   const [gender, setGender] = useState<Gender | null>(null);
   const [book, setBook] = useState<LessonResponse[]>([]);
+  const [images, setImages] = useState<BookImages | null>(null);
+  const [crisis, setCrisis] = useState("");
+  // The question steps of this session. Replies live in a ref for the length of
+  // one book request and are cleared right after it: never stored or shown.
+  const [steps, setSteps] = useState<Lesson[] | null>(null);
+  const [stepIndex, setStepIndex] = useState(0);
+  const replies = useRef<ChildReply[]>([]);
   const [profile, setProfile] = useState<ReaderProfile | null>(null);
   const [busy, setBusy] = useState(false);
   const [buildError, setBuildError] = useState("");
@@ -60,25 +69,58 @@ export default function LearningApp() {
   }, [loadCatalog]);
   useEffect(() => () => generation.current?.abort(), []);
 
-  async function createBook(event: React.FormEvent<HTMLFormElement>) {
+  function startSteps(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (generation.current || catalog.length === 0 || !gender) return;
-    const selected = pickSession(catalog, previousSession.current);
+    replies.current = [];
+    setBuildError("");
+    setStepIndex(0);
+    setSteps(pickSession(catalog, previousSession.current));
+  }
+
+  function reply(answer: ChildReply) {
+    if (!steps) return;
+    replies.current[stepIndex] = answer;
+    if (stepIndex + 1 < steps.length) setStepIndex(stepIndex + 1);
+    else void createBook(steps);
+  }
+
+  async function createBook(selected: Lesson[]) {
+    if (generation.current || !gender) return;
+    const sent = replies.current;
+    replies.current = [];
     const controller = new AbortController();
     generation.current = controller;
     const timeout = window.setTimeout(() => controller.abort(), 90000);
     setBusy(true);
     setBuildError("");
     try {
+      // Pictures are optional: if they fail, the page draws its own.
+      const pictures = request<BookImages>(
+        "/api/illustrations",
+        {
+          sessionId: crypto.randomUUID(),
+          lessonIds: selected.map((lesson) => lesson.id),
+          age,
+          gender,
+        },
+        controller.signal,
+      ).catch(() => null);
       const entries = await Promise.all(
-        selected.map((lesson) =>
+        selected.map((lesson, index) =>
           request<LessonResponse>(
             "/api/lesson",
-            { lessonId: lesson.id, age, gender },
+            {
+              lessonId: lesson.id,
+              age,
+              gender,
+              reply: sent[index] ?? { kind: "none" },
+            },
             controller.signal,
           ),
         ),
       );
+      const bookImages = await pictures;
       if (generation.current !== controller) return;
       try {
         buildStoryBook(entries);
@@ -92,7 +134,10 @@ export default function LearningApp() {
         age,
         gender,
       });
-      setBook(entries);
+      setCrisis(entries.find((entry) => entry.replyCrisis)?.replyCrisis ?? "");
+      setImages(bookImages);
+      setBook(entries.map(({ replyCrisis: _crisis, ...entry }) => entry));
+      setSteps(null);
       previousSession.current = selected.map((lesson) => lesson.id);
       window.requestAnimationFrame(() => {
         workspace.current?.scrollIntoView({
@@ -111,6 +156,7 @@ export default function LearningApp() {
               : "تعذّر إعداد الكتاب.",
         );
     } finally {
+      sent.length = 0;
       window.clearTimeout(timeout);
       if (generation.current === controller) {
         generation.current = null;
@@ -171,8 +217,9 @@ export default function LearningApp() {
               <h2 id="how-title">اختاروا، افتحوا، واقرؤوا معًا.</h2>
             </div>
             <p>
-              اختاروا العمر والشخصية. افتحوا الكتاب وقلّبوا صفحاته: لكل موقف
-              صفحة للنص وصفحة لمعناه وسؤال قصير، ويمكنكم طباعته.
+              اختاروا العمر والشخصية، وأجيبوا عن سؤال قصير لكل موقف أو تخطّوه.
+              ثم افتحوا الكتاب وقلّبوا صفحاته: لكل موقف صفحة للنص وصفحة لمعناه،
+              ويمكنكم طباعته.
             </p>
           </section>
 
@@ -189,23 +236,68 @@ export default function LearningApp() {
                 {book.length ? "هذا كتابكم." : "كتاب صغير، على ذوقه."}
               </h2>
             </div>
+            {crisis && (
+              <p role="alert" className="error-box crisis-box">
+                {crisis}
+              </p>
+            )}
             {book.length > 0 && profile ? (
               <BookReader
                 entries={book}
                 profile={profile}
                 notice={notice}
+                images={images}
                 onEdit={() => {
                   setBook([]);
+                  setImages(null);
+                  setCrisis("");
                   setProfile(null);
                   window.requestAnimationFrame(() =>
                     document.getElementById("child-name")?.focus(),
                   );
                 }}
               />
+            ) : steps && gender ? (
+              <div className="maker-card" aria-busy={busy}>
+                {busy ? (
+                  <p role="status" className="inline-state">
+                    <LoaderCircle className="spin" size={18} />
+                    نرتّب صفحات كتابك…
+                  </p>
+                ) : (
+                  <QuestionStep
+                    lesson={steps[stepIndex]}
+                    index={stepIndex}
+                    total={steps.length}
+                    band={ageBand(age)}
+                    name={name}
+                    onReply={reply}
+                    onCancel={() => {
+                      replies.current = [];
+                      setSteps(null);
+                    }}
+                  />
+                )}
+                {buildError && (
+                  <div role="alert" className="error-box">
+                    {buildError}
+                    <button
+                      type="button"
+                      className="quiet-link"
+                      onClick={() => {
+                        setBuildError("");
+                        setSteps(null);
+                      }}
+                    >
+                      العودة إلى الاختيارات
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <form
                 className="maker-card"
-                onSubmit={createBook}
+                onSubmit={startSteps}
                 aria-busy={busy}
               >
                 <fieldset className="maker-fields" disabled={busy}>
@@ -333,7 +425,8 @@ export default function LearningApp() {
               </p>
               <p>
                 لإعداد الكتاب نرسل العمر ورمز النص وجنس الطفل (ولد أو بنت) لصياغة الشرح بالمذكر أو المؤنث. تُرسل
-                الأسئلة المكتوبة لمعالجتها؛ وقد تتلقى خدمة الاستضافة بيانات
+                الأسئلة المكتوبة لمعالجتها. وما يكتبه الطفل في خطوة السؤال يُستعمل في
+                طلب الشرح ويُنسى: لا يُحفظ ولا يُطبع ولا يظهر في الكتاب؛ وقد تتلقى خدمة الاستضافة بيانات
                 الاتصال اللازمة للتشغيل والحماية. النسخة المطبوعة تتضمن الاسم إن
                 أُدخل؛ راجعوها قبل مشاركتها.
               </p>

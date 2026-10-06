@@ -91,8 +91,9 @@ test("demo scope: 4 adhkar in 3 situations, empty manasik pack, no invented revi
     assert.equal(item.source, "TODO_REVIEW");
     assert.equal(item.grade, "TODO_REVIEW");
     assert.equal(sourceLine(item), SOURCE_PENDING);
-    assert.equal(item.options.length, 3);
-    assert.ok(item.answer >= 0 && item.answer < item.options.length);
+    assert.equal(item.hint_chips.length, 3);
+    assert.ok(!("answer" in item), "the question step neither corrects nor marks wrong");
+    assert.ok(item.top_layer.title.length > 0);
     assert.notEqual(item.meaning_young, item.meaning_older);
     assert.ok(["standing", "sitting", "walking"].includes(item.pose));
     assert.equal(item.scene_mode, "generated", "no sacred-place scene in the demo");
@@ -106,12 +107,12 @@ test("two items in one situation keep distinct ids and texts", () => {
   assert.equal(new Set(lessons.map((x) => x.id)).size, lessons.length);
 });
 test("content fields are read-only at runtime", () => {
-  const item = lessons[0] as { text: string; options: string[] };
+  const item = lessons[0] as { text: string; hint_chips: string[] };
   assert.throws(() => {
     item.text = "x";
   }, TypeError);
   assert.throws(() => {
-    item.options.push("x");
+    item.hint_chips.push("x");
   }, TypeError);
   assert.ok(Object.isFrozen(lessons));
 });

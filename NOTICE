@@ -18,3 +18,10 @@ before publishing or submitting this repository.
 
 Content: the adhkar texts are taken from the printed product «حصن الطفل»,
 supplied by the content owner. See docs/SOURCES.md.
+
+Book art: apps/qindeel/public/book/ (cover-bg.jpg, page-bg.jpg, top-waking.png,
+top-logo.png) comes from the content owner's «حصن الطفل» design files. Two areas
+were cleared from the top layer; see docs/ASSETS.md.
+
+Fonts: Aref Ruqaa and IBM Plex Sans Arabic (SIL Open Font License 1.1), served
+through next/font. Amiri (OFL 1.1) is still loaded and is due to be removed.

@@ -1952,3 +1952,369 @@ details > summary::marker {
   color: var(--muted);
   margin-inline-start: 6px;
 }
+
+/* ── Book pages: three layers (background · top layer · content) ──────────────
+   Page art is 1748×2480; positions below are percentages of that sheet, so the
+   name always sits under «حِصنُ» whatever the page size. */
+.book-reader .paper-leaf,
+.book-reader .book-cover {
+  position: relative;
+  aspect-ratio: 1748 / 2480;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  container-type: inline-size;
+  color: #fff;
+  background: #2a1a6e !important;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.book-reader .book-cover {
+  width: 430px;
+  max-width: 100%;
+  border-radius: 4px 12px 12px 4px;
+}
+.book-reader .book-cover:before {
+  content: none;
+}
+.leaf-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+.leaf-top {
+  object-fit: fill;
+  z-index: 1;
+}
+.leaf-name,
+.cover-name {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 2;
+  margin: 0;
+  text-align: center;
+  font: 700 7.4cqw/1.2 var(--font-display), var(--font-body);
+  color: #fff;
+  text-shadow:
+    0 0 0.35cqw #ff9fd6,
+    0 0.3cqw 0.6cqw #20114d;
+}
+.leaf-name {
+  top: 13.1%;
+}
+.leaf-title {
+  position: absolute;
+  top: 20.6%;
+  inset-inline: 6%;
+  z-index: 2;
+  margin: 0;
+  text-align: center;
+  font: 700 6.4cqw/1.35 var(--font-display), var(--font-body);
+  color: #ffa8dc;
+}
+.leaf-body {
+  position: absolute;
+  top: 28.5%;
+  inset-inline: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6cqw;
+}
+/* The text and explanation card: CSS only, never a frame image. */
+.book-card {
+  width: 82%;
+  margin: 0 auto;
+  padding: 48px;
+  border-radius: 32px;
+  border: 0;
+  box-shadow: none;
+  background: rgb(255 255 255 / 50%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  text-align: center;
+  line-height: 2.1;
+  text-shadow: 0 1px 2px rgb(32 17 77 / 55%);
+}
+.book-card.sacred-text {
+  font: 700 4.6cqw/2.1 var(--font-body);
+}
+.book-card.meaning-prose {
+  font: 600 4.1cqw/2.05 var(--font-body);
+}
+.book-card.meaning-prose p {
+  margin: 0;
+}
+.reading-desk.large-text .book-card {
+  font-size: 5.4cqw;
+}
+.leaf-body .source-link,
+.leaf-body .source-note {
+  margin: 0;
+  font: 400 2.5cqw/1.6 var(--font-body);
+  color: rgb(255 255 255 / 72%);
+  text-align: center;
+}
+.closing-card {
+  font: 500 3.3cqw/1.9 var(--font-body);
+}
+.closing-card .closing-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2cqw;
+  font: 700 5cqw/1.7 var(--font-display), var(--font-body);
+  color: #ffd2ec;
+}
+.closing-card .book-colophon {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  color: #fff;
+  font-size: 2.9cqw;
+}
+/* Scene picture: below the card, sitting on the bottom edge, 78% wide, no frame. */
+.book-reader .story-illustration {
+  position: absolute;
+  bottom: 0;
+  inset-inline-start: 11%;
+  width: 78%;
+  height: 52%;
+  margin: 0;
+  max-width: none;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.story-illustration > .scene,
+.story-illustration > .scene-art,
+.story-illustration > .scene-composite {
+  width: 100%;
+  max-height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  object-fit: contain;
+  object-position: bottom;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 16%);
+  mask-image: linear-gradient(to bottom, transparent, #000 16%);
+}
+.scene-composite {
+  position: relative;
+}
+.scene-composite > .scene {
+  display: block;
+  width: 100%;
+}
+.scene-composite > img {
+  position: absolute;
+  bottom: 4%;
+  left: 50%;
+  height: 78%;
+  transform: translateX(-50%);
+}
+.book-reader .folio {
+  position: absolute;
+  bottom: 1.6%;
+  inset-inline: 4%;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  font: 400 2.6cqw/1 var(--font-body);
+  color: rgb(255 255 255 / 80%);
+  border: 0;
+}
+.book-reader .folio > span:before,
+.book-reader .folio > span:after {
+  content: none;
+}
+.book-reader .folio .review-badge {
+  font-size: 2.3cqw;
+}
+
+/* Cover. */
+.cover-name {
+  top: 25.6%;
+  font-size: 9.5cqw;
+}
+.cover-line {
+  position: absolute;
+  top: 34%;
+  inset-inline: 6%;
+  z-index: 2;
+  margin: 0;
+  text-align: center;
+  font: 700 5.2cqw/1.4 var(--font-display), var(--font-body);
+  color: #ffc4e8;
+  text-shadow: 0 0.3cqw 0.6cqw #20114d;
+}
+.cover-child {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 50%;
+  width: 70%;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.cover-child > img,
+.cover-child > .child-figure {
+  max-width: 100%;
+  height: 92%;
+  object-fit: contain;
+  object-position: bottom;
+}
+.cover-mark {
+  position: absolute;
+  bottom: 3%;
+  right: 5%;
+  z-index: 3;
+  padding: 0.6cqw 2.4cqw;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 88%);
+  color: #2a1a6e;
+  font: 700 3.4cqw/1.5 var(--font-display), var(--font-body);
+}
+.cover-badge {
+  position: absolute;
+  top: 2%;
+  left: 3%;
+  z-index: 3;
+}
+.book-reader .cover-open {
+  position: absolute;
+  bottom: 3%;
+  left: 4%;
+  z-index: 3;
+  margin: 0;
+  gap: 10px;
+  min-height: 40px;
+  padding: 6px 16px;
+}
+
+/* Question step, before the book. */
+.question-step {
+  display: grid;
+  gap: 14px;
+  text-align: center;
+  justify-items: center;
+}
+.step-progress {
+  font-weight: 600;
+  color: var(--plum);
+}
+.step-situation {
+  font: 700 30px/1.4 var(--font-display), var(--font-body);
+  color: #8a3d78;
+  margin: 0;
+}
+.step-text {
+  font: 700 22px/2 var(--font-body);
+  margin: 0;
+  max-width: 34em;
+}
+.question-step h3 {
+  font-size: 22px;
+  line-height: 1.6;
+  margin: 6px 0;
+}
+.step-chips,
+.step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.step-chips > button,
+.step-actions > button {
+  min-height: 44px;
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 1px solid #bbaabd;
+  background: #fff;
+  color: var(--ink);
+  font-size: 17px;
+}
+.step-chips > button:hover,
+.step-actions > button:hover {
+  background: #f1e9f1;
+}
+.step-reply {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 520px);
+  text-align: start;
+}
+.step-reply textarea {
+  width: 100%;
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #bbaabd;
+  resize: vertical;
+}
+.step-reply .button {
+  justify-self: start;
+}
+.step-warning {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #fff7e6;
+  color: #6b4400;
+  font-size: 15px;
+}
+.step-reply label span {
+  font-size: 13px;
+  color: #6e6170;
+}
+.crisis-box {
+  margin-bottom: 16px;
+}
+
+@media print {
+  @page {
+    size: 148mm 210mm;
+    margin: 0;
+  }
+  html,
+  body,
+  .print-only,
+  .print-only * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  .print-only .book-cover,
+  .print-only .paper-leaf {
+    width: 148mm !important;
+    height: 210mm !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #2a1a6e !important;
+    color: #fff !important;
+    break-after: page;
+    break-inside: avoid;
+    display: block;
+  }
+  .print-only .paper-leaf:last-child {
+    break-after: auto;
+  }
+  .print-only .book-card {
+    padding: 9mm;
+  }
+}

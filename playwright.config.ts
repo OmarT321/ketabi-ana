@@ -20,6 +20,8 @@ export default defineConfig({
           url: "http://localhost:3001",
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,
+          // Tests never call a real provider, whatever .env.local holds.
+          env: { AI_ENABLED: "false", AI_IMAGES_ENABLED: "false" },
         },
       ],
 });

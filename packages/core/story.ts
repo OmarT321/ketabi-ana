@@ -45,3 +45,9 @@ export function buildStoryBook(entries: LessonResponse[]): StoryBook {
     situations: [...new Set(entries.map((e) => e.lesson.situation))],
   };
 }
+
+/** The child's name never leaves the browser, even inside a typed reply. */
+export function maskName(text: string, name: string) {
+  const trimmed = name.trim();
+  return trimmed.length >= 2 ? text.split(trimmed).join("{name}") : text;
+}

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans_Arabic, Amiri } from "next/font/google";
+import { IBM_Plex_Sans_Arabic, Amiri, Aref_Ruqaa } from "next/font/google";
 import "./globals.css";
 
 const sans = IBM_Plex_Sans_Arabic({
@@ -12,6 +12,15 @@ const amiri = Amiri({
   subsets: ["arabic", "latin"],
   weight: ["400", "700"],
   variable: "--font-amiri",
+  display: "swap",
+});
+
+// Book display face (names and page titles): closest free match to the «حِصنُ»
+// lettering. OFL; self-hosted at build time by next/font.
+const display = Aref_Ruqaa({
+  subsets: ["arabic"],
+  weight: ["400", "700"],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -30,7 +39,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={`${sans.variable} ${amiri.variable}`}>
+      <body className={`${sans.variable} ${amiri.variable} ${display.variable}`}>
         <a className="skip-link" href="#main">
           انتقل إلى المحتوى
         </a>

@@ -119,6 +119,13 @@ async function qindeelDemo(page) {
     page,
     page.getByRole("button", { name: "اصنع كتاب نور", exact: true }),
   );
+  // Question steps before the book (young band: «ما أعرف» and «تخطّي» only).
+  for (let i = 0; i < 3; i++) {
+    const step = page.getByTestId("question-step");
+    await step.waitFor();
+    await pause(page, 1400);
+    await click(page, step.getByRole("button", { name: i === 1 ? "ما أعرف" : "تخطّي" }));
+  }
   const reader = page.locator(".reader-screen");
   await reader.waitFor({ timeout: 90000 });
   assert.equal(lessonResponses.length, 3, "A session loads three items");
@@ -141,12 +148,6 @@ async function qindeelDemo(page) {
     assert.ok(turns < 10, "Book navigation must reach the closing page");
     await scrollTo(page, desk, "start");
     await pause(page, turns === 0 ? 2400 : 3300);
-    const quiz = reader.locator(".page-meaning .answer-options > button");
-    if (await quiz.count()) {
-      await click(page, quiz.first());
-      await reader.locator(".quiz-feedback").first().waitFor();
-      await pause(page, 1200);
-    }
     if (await next.isDisabled()) break;
     await click(page, next);
     turns++;

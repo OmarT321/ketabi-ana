@@ -1,11 +1,21 @@
 import { createHash } from "node:crypto";
 import {
+  illustrateBook,
+  imagesEnabled,
+  falDeps,
+  type BookImages,
+  type ImageDeps,
+} from "./illustrations";
+import {
   lessons,
   reviewNotice,
   validAge,
   ageBand,
   meaningFor,
   sourceLine,
+  STEP_QUESTION,
+  hintChipsFor,
+  MAX_REPLY_LENGTH,
 } from "./content";
 import {
   normalize,
@@ -13,15 +23,21 @@ import {
   isRestricted,
   childRefusal,
 } from "./safety";
-import { generateExplanation, warmedExplanation, type Explanation } from "./explain";
+import {
+  generateExplanation,
+  warmedExplanation,
+  gatewayDeps,
+  type Explanation,
+  type ExplainDeps,
+} from "./explain";
 import type {
   AgeBand,
+  ChildReply,
   Gender,
   Lesson,
   LessonResponse,
   QuestionResponse,
 } from "./types";
-import { illustration } from "./illustrations";
 
 export const preview =
   process.env.CONTENT_MODE === "preview" ||
@@ -130,6 +146,7 @@ async function explanationFor(
   lesson: Lesson,
   band: AgeBand,
   gender: Gender,
+  deps: ExplainDeps,
 ): Promise<Explanation> {
   const warm = warmedExplanation(lesson, band, gender);
   if (warm) return { text: warm, mode: "generated", rejections: [] };
@@ -138,7 +155,7 @@ async function explanationFor(
   const key = `${lesson.id}:${band}:${gender}`;
   let pending = explanationCache.get(key);
   if (!pending) {
-    pending = generateExplanation(lesson, band, gender);
+    pending = generateExplanation(lesson, band, gender, deps);
     explanationCache.set(key, pending);
     // A fallback is not cached, so a later request can try the provider again.
     void pending.then((r) => {
@@ -147,36 +164,70 @@ async function explanationFor(
   }
   return pending;
 }
+/** Turns the child's reply into text the model may see, or nothing.
+ * A typed reply is accepted from the older band only, and must pass both checks
+ * here, on the server, before it can go anywhere: a crisis reply never leaves
+ * the server, and a restricted one is treated as no reply. */
+export function resolveReply(
+  lesson: Lesson,
+  band: AgeBand,
+  reply: ChildReply,
+): { text: string } | { crisis: true } | null {
+  if (reply.kind === "chip") {
+    const chip = hintChipsFor(lesson)[reply.index];
+    return chip ? { text: chip } : null;
+  }
+  if (reply.kind !== "text" || band !== "older") return null;
+  const text = reply.text.trim();
+  if (!text || text.length > MAX_REPLY_LENGTH) return null;
+  if (isCrisis(text)) return { crisis: true };
+  if (isRestricted(text)) return null;
+  return { text };
+}
+
 export async function getLesson(
   id: string,
   age: number,
   gender: Gender,
+  reply: ChildReply = { kind: "none" },
+  deps: ExplainDeps = gatewayDeps,
 ): Promise<LessonResponse | null> {
   if (!validAge(age) || !["boy", "girl"].includes(gender)) return null;
   const lesson = (await getLessons()).find((item) => item.id === id);
   if (!lesson) return null;
-  const result = await explanationFor(lesson, ageBand(age), gender);
-  const imageUrl = preview ? await illustration(lesson, gender) : null;
+  const band = ageBand(age);
+  const resolved = resolveReply(lesson, band, reply);
+  // A reply shapes this one explanation and is then forgotten: it is not
+  // cached, logged or returned. Without a usable reply, or when the provider
+  // fails or the explanation is rejected twice, the base explanation is shown.
+  let result: Explanation | null = null;
+  if (resolved && "text" in resolved && aiEnabled()) {
+    const personal = await generateExplanation(lesson, band, gender, deps, 15000, {
+      question: STEP_QUESTION[band],
+      text: resolved.text,
+    });
+    if (personal.mode === "generated") result = personal;
+  }
+  result ??= await explanationFor(lesson, band, gender, deps);
   return {
     lesson,
     explanation: result.text,
     mode: result.mode,
-    imageUrl,
-    imageMode: imageUrl ? "generated" : "illustrated",
+    imageUrl: null,
+    imageMode: "illustrated",
     reviewNotice: notice,
+    ...(resolved && "crisis" in resolved ? { replyCrisis: CHILD_CRISIS } : {}),
   };
 }
+const CHILD_CRISIS =
+  "تحدث الآن مع والدك أو والدتك أو شخص بالغ تثق به ليبقى معك ويساعدك. إذا كنت في خطر فاطلب منه الاتصال بالطوارئ المحلية فورًا. هذه الخدمة لا تستطيع إرسال مساعدة.";
 export async function answerQuestion(
   id: string,
   question: string,
   age: number,
 ): Promise<QuestionResponse> {
   if (isCrisis(question))
-    return {
-      status: "crisis",
-      answer:
-        "تحدث الآن مع والدك أو والدتك أو شخص بالغ تثق به ليبقى معك ويساعدك. إذا كنت في خطر فاطلب منه الاتصال بالطوارئ المحلية فورًا. هذه الخدمة لا تستطيع إرسال مساعدة.",
-    };
+    return { status: "crisis", answer: CHILD_CRISIS };
   const lesson = (await getLessons()).find((x) => x.id === id);
   if (!lesson || !validAge(age) || isRestricted(question))
     return { status: "refused", answer: childRefusal };
@@ -203,4 +254,27 @@ export async function answerQuestion(
       : meaningFor(lesson, ageBand(age)),
     source: sourceLine(lesson),
   };
+}
+
+/** All of a book's pictures in one request, so one reference child serves the
+ * whole book. Nothing is kept after the response: the reference lives only in
+ * this call. Off unless AI_ENABLED, AI_IMAGES_ENABLED and FAL_KEY are all set;
+ * the page then draws its own pictures. */
+export async function getBookImages(
+  input: { sessionId: string; lessonIds: string[]; age: number; gender: Gender },
+  deps: ImageDeps = falDeps,
+  enabled: () => boolean = imagesEnabled,
+): Promise<BookImages | null> {
+  if (!validAge(input.age) || !["boy", "girl"].includes(input.gender)) return null;
+  const all = await getLessons();
+  const chosen = input.lessonIds.map((id) => all.find((l) => l.id === id));
+  if (chosen.some((l) => !l) || new Set(input.lessonIds).size !== input.lessonIds.length)
+    return null;
+  const lessonsInBook = chosen as Lesson[];
+  if (!enabled())
+    return { cover: null, scenes: Object.fromEntries(lessonsInBook.map((l) => [l.id, null])) };
+  return illustrateBook(
+    { sessionId: input.sessionId, gender: input.gender, band: ageBand(input.age), lessons: lessonsInBook },
+    deps,
+  );
 }

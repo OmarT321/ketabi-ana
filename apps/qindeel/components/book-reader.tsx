@@ -1,12 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
-  Check,
   Download,
   LoaderCircle,
   RotateCcw,
@@ -24,7 +21,8 @@ import type {
   LessonResponse,
   QuestionResponse,
 } from "@platform/core/types";
-import { Scene } from "./scene";
+import type { BookImages, SceneImage } from "@platform/core/illustrations";
+import { ChildFigure, Scene } from "./scene";
 import { request } from "./client-api";
 
 export type ReaderProfile = {
@@ -51,11 +49,14 @@ export function BookReader({
   entries,
   profile,
   notice,
+  images,
   onEdit,
 }: {
   entries: LessonResponse[];
   profile: ReaderProfile;
   notice: string;
+  /** Pictures for this book, or null: the page then draws its own. */
+  images: BookImages | null;
   onEdit: () => void;
 }) {
   const story = useMemo(() => buildStoryBook(entries), [entries]);
@@ -193,7 +194,12 @@ export function BookReader({
           }}
         >
           {page === 0 ? (
-            <BookCover story={story} profile={profile} onOpen={next} />
+            <BookCover
+              story={story}
+              profile={profile}
+              coverChild={images?.cover ?? null}
+              onOpen={next}
+            />
           ) : (
             <div
               className={`paper-spread ${wide ? "two-pages" : "one-page"}`}
@@ -207,6 +213,7 @@ export function BookReader({
                   profile={profile}
                   story={story}
                   notice={notice}
+                  images={images}
                 />
               ))}
             </div>
@@ -241,7 +248,7 @@ export function BookReader({
         <QuestionBox entries={story.items} age={profile.age} />
       </div>
       <div className="print-only" aria-hidden="true">
-        <BookCover story={story} profile={profile} />
+        <BookCover story={story} profile={profile} coverChild={images?.cover ?? null} />
         {pages.map((item, index) => (
           <BookPage
             key={`print-${index}`}
@@ -250,6 +257,7 @@ export function BookReader({
             profile={profile}
             story={story}
             notice={notice}
+            images={images}
             print
           />
         ))}
@@ -258,38 +266,65 @@ export function BookReader({
   );
 }
 
+const BOOK_ART = "/book";
+export const COVER_LINE = "أذكاري اليومية رفيقي كل يوم";
+
+/** Layer 2: the header art. The situation's own image when it has arrived;
+ * otherwise the logo alone and the title drawn as text in the same place. */
+function TopLayer({ image, title }: { image: string | null; title: string }) {
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        className="leaf-layer leaf-top"
+        src={`${BOOK_ART}/${image ?? "top-logo.png"}`}
+        alt=""
+      />
+      <h4 className={image ? "sr-only" : "leaf-title"}>{title}</h4>
+    </>
+  );
+}
+
 function BookCover({
   story,
   profile,
+  coverChild,
   onOpen,
 }: {
   story: ReturnType<typeof buildStoryBook>;
   profile: ReaderProfile;
+  coverChild: string | null;
   onOpen?: () => void;
 }) {
   return (
     <article className="book-cover" data-testid="book-cover">
-      <div className="cover-border">
-        <span className="cover-brand">
-          <BookOpen size={20} />
-          كتابي أنا
-        </span>
-        <ReviewBadge lessons={story.items.map((entry) => entry.lesson)} />
-        <h4>{named(story.title, profile.name)}</h4>
-        <p className="cover-subtitle">{story.situations.join(" · ")}</p>
-        <div className="cover-illustration">
-          <Scene
-            scene={story.items[0]?.lesson.scene ?? "morning"}
-            avatar={profile.gender}
-          />
-        </div>
-        {onOpen && (
-          <button type="button" className="cover-open" onClick={onOpen}>
-            افتح الكتاب
-            <ArrowLeft size={20} />
-          </button>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="leaf-layer" src={`${BOOK_ART}/cover-bg.jpg`} alt="" />
+      <h4 className="sr-only">{named(story.title, profile.name)}</h4>
+      <p className="cover-name" data-testid="child-name">
+        {profile.name}
+      </p>
+      <p className="cover-line">{COVER_LINE}</p>
+      <div className="cover-child">
+        {coverChild ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={coverChild} alt={`شخصية ${profile.name}`} />
+        ) : (
+          <ChildFigure gender={profile.gender} label={`شخصية ${profile.name}`} />
         )}
       </div>
+      <span className="cover-mark" aria-label="قصتي">
+        قصتي
+      </span>
+      <div className="cover-badge">
+        <ReviewBadge lessons={story.items.map((entry) => entry.lesson)} />
+      </div>
+      {onOpen && (
+        <button type="button" className="cover-open" onClick={onOpen}>
+          افتح الكتاب
+          <ArrowLeft size={20} />
+        </button>
+      )}
     </article>
   );
 }
@@ -297,24 +332,29 @@ function BookCover({
 function Illustration({
   entry,
   avatar,
+  image,
 }: {
   entry: LessonResponse;
   avatar: Gender;
+  image: SceneImage | undefined;
 }) {
   const [failed, setFailed] = useState(false);
-  return entry.imageUrl && !failed ? (
-    <Image
-      src={entry.imageUrl}
-      width={960}
-      height={700}
-      sizes="(max-width: 800px) 85vw, 420px"
-      alt={`رسم لموقف ${entry.lesson.situation}`}
-      unoptimized
-      onError={() => setFailed(true)}
-    />
-  ) : (
-    <Scene scene={entry.lesson.scene} avatar={avatar} />
-  );
+  const label = `رسم لموقف ${entry.lesson.situation}`;
+  if (image?.mode === "generated" && !failed)
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img className="scene-art" src={image.url} alt={label} onError={() => setFailed(true)} />
+    );
+  if (image?.mode === "composite" && !failed)
+    // Approved drawn background with the generated child laid over it.
+    return (
+      <div className="scene-composite" role="img" aria-label={label}>
+        <Scene scene={image.background} avatar={avatar} hideChild />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={image.childUrl} alt="" onError={() => setFailed(true)} />
+      </div>
+    );
+  return <Scene scene={entry.lesson.scene} avatar={avatar} />;
 }
 
 function BookPage({
@@ -323,52 +363,49 @@ function BookPage({
   profile,
   story,
   notice,
-  print = false,
+  images,
 }: {
   item: Page;
   number: number;
   profile: ReaderProfile;
   story: ReturnType<typeof buildStoryBook>;
   notice: string;
+  images: BookImages | null;
   print?: boolean;
 }) {
   const lessons =
     item.kind === "closing"
       ? story.items.map((entry) => entry.lesson)
       : [item.entry.lesson];
-  const title =
+  const top =
     item.kind === "text"
-      ? `عند ${item.entry.lesson.situation} نقول:`
-      : item.kind === "meaning"
-        ? "ماذا يعني؟"
-        : "ما تعلّمتَه اليوم";
+      ? item.entry.lesson.top_layer
+      : { image: null, title: item.kind === "meaning" ? "ماذا يعني؟" : "ما تعلّمتَه اليوم" };
   return (
     <article
       className={`paper-leaf page-${item.kind}`}
       data-testid="book-page"
-      aria-label={`الصفحة ${ar(number)}: ${title}`}
+      aria-label={`الصفحة ${ar(number)}: ${top.title}`}
     >
-      <div className="running-head">
-        <span>كتاب {profile.name}</span>
-        <ReviewBadge lessons={lessons} />
-        <span>كتابي أنا</span>
-      </div>
-      <div className="leaf-content">
-        <h4>{title}</h4>
+      {/* Layer 1: background. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="leaf-layer" src={`${BOOK_ART}/page-bg.jpg`} alt="" />
+      <TopLayer image={top.image} title={top.title} />
+      {/* The name is written by the page under «حِصنُ», never burnt into an image. */}
+      <p className="leaf-name">{profile.name}</p>
+      {/* Layer 3: content. */}
+      <div className="leaf-body">
         {item.kind === "text" && (
           <>
-            <blockquote className="sacred-text">
+            <blockquote className="book-card sacred-text">
               {item.entry.lesson.text}
             </blockquote>
             <p className="source-link">{sourceLine(item.entry.lesson)}</p>
-            <div className="story-illustration">
-              <Illustration entry={item.entry} avatar={profile.gender} />
-            </div>
           </>
         )}
         {item.kind === "meaning" && (
           <>
-            <div className="meaning-prose">
+            <div className="book-card meaning-prose">
               <p>{named(item.entry.explanation, profile.name)}</p>
             </div>
             <small className="source-note">
@@ -376,11 +413,10 @@ function BookPage({
                 ? "الشرح مصوغ آلياً من المعنى المدوَّن"
                 : "المعنى كما كُتب في المصدر"}
             </small>
-            <QuizCard lesson={item.entry.lesson} print={print} />
           </>
         )}
         {item.kind === "closing" && (
-          <>
+          <div className="book-card closing-card">
             <ul className="closing-list">
               {story.situations.map((situation) => (
                 <li key={situation}>{situation}</li>
@@ -390,62 +426,23 @@ function BookPage({
               <p>{PARENT_LINE}</p>
               <p>{notice}</p>
             </div>
-          </>
+          </div>
         )}
       </div>
+      {item.kind === "text" && (
+        <div className="story-illustration">
+          <Illustration
+            entry={item.entry}
+            avatar={profile.gender}
+            image={images?.scenes[item.entry.lesson.id]}
+          />
+        </div>
+      )}
       <footer className="folio">
+        <ReviewBadge lessons={lessons} />
         <span>{ar(number)}</span>
       </footer>
     </article>
-  );
-}
-
-function QuizCard({ lesson, print }: { lesson: Lesson; print: boolean }) {
-  const [choice, setChoice] = useState<number | null>(null);
-  if (print)
-    return (
-      <div className="quiz-card">
-        <p className="quiz-question">{lesson.question}</p>
-        <ol className="print-questions">
-          {lesson.options.map((option) => (
-            <li key={option}>{option}</li>
-          ))}
-        </ol>
-      </div>
-    );
-  return (
-    <div className="quiz-card">
-      <p className="quiz-question">{lesson.question}</p>
-      <div className="answer-options">
-        {lesson.options.map((option, value) => (
-          <button
-            type="button"
-            key={option}
-            disabled={choice !== null}
-            aria-pressed={choice === value}
-            className={`${choice === value ? "selected" : ""} ${choice !== null && value === lesson.answer ? "correct" : ""}`}
-            onClick={() => setChoice(value)}
-          >
-            {option}
-            {choice !== null && value === lesson.answer && <Check size={18} />}
-          </button>
-        ))}
-      </div>
-      {choice !== null && (
-        <p className="quiz-feedback" role="status">
-          {choice === lesson.answer
-            ? "أحسنت، هذا هو المعنى."
-            : `نراجعها معًا: ${lesson.options[lesson.answer]}.`}
-          <button
-            type="button"
-            className="quiet-link"
-            onClick={() => setChoice(null)}
-          >
-            نحاول مرة أخرى
-          </button>
-        </p>
-      )}
-    </div>
   );
 }
 

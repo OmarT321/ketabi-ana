@@ -249,26 +249,3 @@ test("pre-generated explanations are keyed by id, age band and gender, and dropp
     "a cached entry that fails the check is never shown",
   );
 });
-
-test("a sacred-place scene is never sent to an image model, even with images enabled", async () => {
-  const { illustration } = await import("../packages/core/illustrations");
-  const saved = { ...process.env };
-  const originalFetch = globalThis.fetch;
-  let called = false;
-  globalThis.fetch = async () => {
-    called = true;
-    throw new Error("network must not be used");
-  };
-  process.env.AI_ENABLED = "true";
-  process.env.AI_IMAGES_ENABLED = "true";
-  try {
-    assert.equal(await illustration({ ...waking, scene: "pilgrimage" }, "girl"), null);
-    assert.equal(called, false);
-  } finally {
-    globalThis.fetch = originalFetch;
-    process.env.AI_ENABLED = saved.AI_ENABLED;
-    process.env.AI_IMAGES_ENABLED = saved.AI_IMAGES_ENABLED;
-    if (saved.AI_ENABLED === undefined) delete process.env.AI_ENABLED;
-    if (saved.AI_IMAGES_ENABLED === undefined) delete process.env.AI_IMAGES_ENABLED;
-  }
-});

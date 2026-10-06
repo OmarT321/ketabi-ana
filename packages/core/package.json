@@ -14,6 +14,7 @@
     "./server": "./server.ts",
     "./http": "./http.ts",
     "./safety": "./safety.ts",
-    "./explain": "./explain.ts"
+    "./explain": "./explain.ts",
+    "./illustrations": "./illustrations.ts"
   }
 }

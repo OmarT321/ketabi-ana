@@ -63,7 +63,7 @@
     "question": "ماذا نطلب من الله قبل الطعام؟",
     "hint_chips": ["أن يجعل الطعام خيراً ونافعاً لنا", "أن يكون الطعام لذيذاً", "أن نأكل كثيراً"],
     "hint_chips_ready": false,
-    "pose": "sitting",
+    "pose": "standing",
     "scene": "food",
     "scene_mode": "generated",
     "top_layer": {
@@ -89,7 +89,7 @@
     "question": "على أي نعمة نشكر الله في هذا الذكر غير الطعام والشراب؟",
     "hint_chips": ["نعمة أن جعلنا مسلمين", "نعمة الأصدقاء", "نعمة البيت"],
     "hint_chips_ready": false,
-    "pose": "sitting",
+    "pose": "standing",
     "scene": "food",
     "scene_mode": "generated",
     "top_layer": {

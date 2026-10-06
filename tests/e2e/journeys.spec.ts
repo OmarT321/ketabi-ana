@@ -95,10 +95,12 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
   });
   await page.goto(qindeel);
   await expect(page.locator("[data-section]")).toHaveCount(3);
-  await expect(page.locator("#child-age option")).toHaveCount(8);
-  await expect(page.locator("#child-age option").first()).toHaveAttribute("value", "5");
+  await page.locator("#child-age").pressSequentially("1a3");
+  await expect(page.locator("#child-age")).toHaveValue("61");
+  await expect(page.getByRole("alert")).toHaveText("العمر من ٥ إلى ١٢ سنة");
+  await page.locator("#child-age").fill("");
   await page.locator("#child-name").fill("ليان");
-  await page.locator("#child-age").selectOption("11");
+  await page.locator("#child-age").fill("11");
   await expect(page.getByRole("button", { name: "اصنع كتاب ليان" })).toBeDisabled();
   await page.getByRole("radio", { name: "بنت" }).check();
   await page.getByRole("button", { name: "اصنع كتاب ليان" }).click();
@@ -269,7 +271,7 @@ test("Long explanations (older band) stay inside their cards on a phone and in p
   await page.goto(qindeel);
   // Two books cover all four items: the next book always differs.
   for (let book = 0; book < 2; book++) {
-    await page.locator("#child-age").selectOption("12");
+    await page.locator("#child-age").fill("12");
     await page.getByRole("radio", { name: "بنت" }).check();
     await page.getByRole("button", { name: "اصنع كتاب طفلي" }).click();
     for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "تخطّي" }).click();

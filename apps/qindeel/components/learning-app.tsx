@@ -24,7 +24,10 @@ export default function LearningApp() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState("");
   const [name, setName] = useState("");
-  const [age, setAge] = useState(6);
+  // Typed age: digits only (Arabic-Indic digits are read as digits), checked against 5–12.
+  const [ageText, setAgeText] = useState("6");
+  const age = Number(ageText);
+  const ageValid = ageText !== "" && age >= MIN_AGE && age <= MAX_AGE;
   // Declared by the parent; never inferred from the name or a photo.
   const [gender, setGender] = useState<Gender | null>(null);
   const [book, setBook] = useState<LessonResponse[]>([]);
@@ -84,7 +87,7 @@ export default function LearningApp() {
 
   function startSteps(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (generation.current || catalog.length === 0 || !gender) return;
+    if (generation.current || catalog.length === 0 || !gender || !ageValid) return;
     replies.current = [];
     setBuildError("");
     setStepIndex(0);
@@ -209,7 +212,6 @@ export default function LearningApp() {
                   <br />
                   {COPY.intro.miniCoverLine2}
                 </strong>
-                <Scene scene="morning" />
                 <small>{COPY.intro.miniCoverOpen}</small>
               </div>
             </div>
@@ -321,27 +323,34 @@ export default function LearningApp() {
                     </div>
                     <div className="form-field">
                       <label htmlFor="child-age">{COPY.form.ageLabel}</label>
-                      <select
+                      <input
                         id="child-age"
-                        value={age}
-                        onChange={(event) => setAge(Number(event.target.value))}
-                      >
-                        {Array.from(
-                          { length: MAX_AGE - MIN_AGE + 1 },
-                          (_, index) => index + MIN_AGE,
-                        ).map(
-                          (value) => (
-                            <option key={value} value={value}>
-                              {COPY.form.years(value)}
-                            </option>
-                          ),
-                        )}
-                      </select>
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={2}
+                        autoComplete="off"
+                        value={ageText}
+                        aria-invalid={!ageValid}
+                        aria-describedby={ageValid ? undefined : "child-age-error"}
+                        onChange={(event) =>
+                          setAgeText(
+                            event.target.value
+                              .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x660))
+                              .replace(/[^0-9]/g, ""),
+                          )
+                        }
+                      />
+                      {!ageValid && (
+                        <small id="child-age-error" role="alert" className="field-error">
+                          {COPY.form.ageRange}
+                        </small>
+                      )}
                     </div>
                   </div>
                   <fieldset className="gender-field">
                     <legend>
-                      {COPY.form.childLegend} <span>{COPY.form.required}</span>
+                      {COPY.form.childLegend}
                     </legend>
                     <div className="avatar-options">
                       {(["boy", "girl"] as const).map((value) => (
@@ -411,7 +420,7 @@ export default function LearningApp() {
                     <button
                       className="button"
                       type="submit"
-                      disabled={catalogBusy || catalog.length === 0 || busy || !gender}
+                      disabled={catalogBusy || catalog.length === 0 || busy || !gender || !ageValid}
                     >
                       {busy ? (
                         <>

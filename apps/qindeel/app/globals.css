@@ -211,7 +211,15 @@ legend {
 }
 .mini-cover {
   width: 228px;
-  background: #615268;
+  aspect-ratio: 1748 / 2480;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* The book's own cover art: the top layer over the background. */
+  background:
+    url("/book/cover-top.png") top / 100% auto no-repeat,
+    url("/book/cover-bg.jpg") center / cover,
+    #2a1a6e;
   border: 1px solid #483c4d;
   padding: 20px 18px 16px;
   text-align: center;
@@ -345,10 +353,13 @@ textarea {
   color: var(--muted);
   line-height: 1.8;
 }
+.form-field .field-error {
+  color: #9b2c2c;
+}
 .avatar-options,
 .pack-options {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
 }
 .avatar-options > button,
@@ -357,19 +368,20 @@ textarea {
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid var(--line);
+  border: 1px solid #cfc4b8;
   background: #faf7f1;
-  border-radius: 10px;
-  padding: 10px 13px;
-  min-height: 52px;
+  border-radius: 8px;
+  padding: 2px 13px;
+  min-height: 48px;
   font-size: 13px;
   text-align: right;
 }
 .avatar-options > button.selected,
 .avatar-options > label.selected,
 .pack-options > button.selected {
-  background: #eee8ef;
-  border-color: #7e6785;
+  background: color-mix(in srgb, var(--plum) 10%, #fffdf9);
+  border-color: var(--plum);
+  box-shadow: inset 0 0 0 1px var(--plum);
   color: var(--plum-dark);
 }
 .avatar-options > button > svg,
@@ -1407,7 +1419,8 @@ details > summary::marker {
   .avatar-options > button,
   .avatar-options > label {
     font-size: 10px;
-    padding: 9px 7px;
+    padding: 4px 7px;
+    min-height: 44px;
     gap: 6px;
   }
   .avatar-options > button > svg,
@@ -1442,8 +1455,9 @@ details > summary::marker {
     padding-top: 18px;
   }
   .maker-bottom > .button {
-    min-height: 46px;
-    font-size: 13px;
+    width: 100%;
+    min-height: 50px;
+    font-size: 15px;
   }
   .maker-bottom > small {
     text-align: center;

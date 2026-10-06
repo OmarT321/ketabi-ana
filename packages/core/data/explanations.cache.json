@@ -1,1 +1,146 @@
-[]
+[
+  {
+    "id": "adhkar-waking",
+    "band": "older",
+    "gender": "boy",
+    "meaningSha256": "8cb885e47f10798e1bf31ca6a96afbd915d61c6c387e3f50bdd637ab4f51df00",
+    "explanation": "يا {name}، حين تصحو من نومك تشكر الله على يوم جديد أعطاك إياه. وفي هذا الذكر معنى أعمق أيضاً: كما أيقظك الله اليوم بعد نومك، سيبعث الناس يوم القيامة بعد موتهم، فالرجوع إلى الله في الحالين.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:03.281Z"
+  },
+  {
+    "id": "adhkar-waking",
+    "band": "older",
+    "gender": "girl",
+    "meaningSha256": "8cb885e47f10798e1bf31ca6a96afbd915d61c6c387e3f50bdd637ab4f51df00",
+    "explanation": "يا {name}، حين تصحين من نومك صباحاً تشكرين الله على يوم جديد أعطاك إياه. وفي هذا الذكر معنى أبعد أيضاً: فكما أيقظك الله اليوم بعد نومك، سيبعث الناس يوم القيامة بعد موتهم، فالرجوع إليه سبحانه في الحالين.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:06.844Z"
+  },
+  {
+    "id": "adhkar-waking",
+    "band": "young",
+    "gender": "boy",
+    "meaningSha256": "8b71fb4862fc75b2b041a1910f114a9692671d6f4ecd17a3edb1e2f46f0cb0f1",
+    "explanation": "يا {name}، أول ما تفتح عينيك بعد النوم، تقول شكراً لله. وأنت نائم كنت لا تعرف شيئاً عمّا يجري في الدنيا، ثم فتحت عينيك من جديد. وهذه نعمة من الله.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:46:49.895Z"
+  },
+  {
+    "id": "adhkar-waking",
+    "band": "young",
+    "gender": "girl",
+    "meaningSha256": "8b71fb4862fc75b2b041a1910f114a9692671d6f4ecd17a3edb1e2f46f0cb0f1",
+    "explanation": "يا {name}، أول ما تستيقظين من النوم، تشكرين الله. كنتِ نائمة ولا تعرفين شيئاً عمّا حولك في الدنيا، ثم فتحتِ عينيكِ من جديد. وهذه نعمة من الله.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:46:54.048Z"
+  },
+  {
+    "id": "adhkar-dressing",
+    "band": "older",
+    "gender": "boy",
+    "meaningSha256": "32b90541a9f502ff24bcaf9bbbea0f778edc168332ae3a231b2b6bd627cab073",
+    "explanation": "يا {name}، عندما تلبس ثوباً جديداً تشكر الله عليه، لأنه هو الذي أعطاك إياه ورزقك به. ثم تطلب من الله أن تستفيد من هذا الثوب، وأن يساعدك على فعل الأعمال الطيبة التي يحبها وأنت تلبسه. وتطلب من الله أيضاً أن يحميك من كل شيء يؤذيك، سواء جاء من الثوب نفسه أو من الشخص الذي صنعه.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:18.180Z"
+  },
+  {
+    "id": "adhkar-dressing",
+    "band": "older",
+    "gender": "girl",
+    "meaningSha256": "32b90541a9f502ff24bcaf9bbbea0f778edc168332ae3a231b2b6bd627cab073",
+    "explanation": "يا {name}، حين تلبسين ثوبًا جديدًا تشكرين الله وتحمدينه، لأنه هو الذي أعطاك هذا الثوب ورزقك إياه. ثم تطلبين منه أن يجعل هذا الثوب نافعًا لك، وأن يساعدك على فعل الأعمال الطيبة التي يحبها وأنت لابسة له. وتلجئين إليه أيضًا ليحميك من كل أذى قد يأتيك من الثوب نفسه، أو من الشخص الذي صنعه.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:22.869Z"
+  },
+  {
+    "id": "adhkar-dressing",
+    "band": "young",
+    "gender": "boy",
+    "meaningSha256": "5596f43bee67435eff3bd1c6794dcf0fadd01527c0fc5d0340ae49abdfc43b88",
+    "explanation": "يا {name}، حين تلبس ثوباً جديداً تقول شكراً لله لأنه أعطاك هذا الثوب. وبعدها تطلب من الله أن تستفيد منه، وأن يحميك من كل شيء يؤذيك.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:10.302Z"
+  },
+  {
+    "id": "adhkar-dressing",
+    "band": "young",
+    "gender": "girl",
+    "meaningSha256": "5596f43bee67435eff3bd1c6794dcf0fadd01527c0fc5d0340ae49abdfc43b88",
+    "explanation": "يا {name}، حين تلبسين ثوباً جديداً، تقولين شكراً لله لأنه أعطاكِ هذا الثوب. وبعد ذلك تطلبين منه أن تنتفعي بالثوب، وأن يحفظكِ من كل أذى.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:13.859Z"
+  },
+  {
+    "id": "adhkar-food-before",
+    "band": "older",
+    "gender": "boy",
+    "meaningSha256": "9c9caee3582b81009049f67e04cc20529dbd1cf5adce7347c2ccda25b3373ba7",
+    "explanation": "يا {name}، قبل أن تبدأ الأكل، اطلب من الله أن يبارك لك في طعامك، فيكون نافعاً لجسمك ومعيناً لك على فعل الخير. واطلب منه أيضاً أن ينجّيك ويحفظك. ثم ابدأ أكلك وأنت تذكر اسم الله الذي رزقك هذا الطعام.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:37.304Z"
+  },
+  {
+    "id": "adhkar-food-before",
+    "band": "older",
+    "gender": "girl",
+    "meaningSha256": "9c9caee3582b81009049f67e04cc20529dbd1cf5adce7347c2ccda25b3373ba7",
+    "explanation": "يا {name}، قبل أن تبدئي الأكل، اطلبي من الله أن يبارك لك فيه، أي أن يكون نافعاً لجسمك، ومعيناً لك على فعل الخير. واطلبي منه أيضاً أن ينجّيك ويحفظك. ثم ابدئي أكلك وأنتِ تذكرين اسم من رزقك هذا الطعام.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:41.719Z"
+  },
+  {
+    "id": "adhkar-food-before",
+    "band": "young",
+    "gender": "boy",
+    "meaningSha256": "149d9140bebec8c2b2b740b644eb1a77eca16b2885823cbc4345a69116588286",
+    "explanation": "يا {name}، قبل أن تبدأ الأكل، اطلب من الله أن يجعل طعامك خيراً لك. واطلب منه أن يحفظك ويحميك. وبعد ذلك ابدأ أكلك وأنت تذكر اسم الله.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:26.330Z"
+  },
+  {
+    "id": "adhkar-food-before",
+    "band": "young",
+    "gender": "girl",
+    "meaningSha256": "149d9140bebec8c2b2b740b644eb1a77eca16b2885823cbc4345a69116588286",
+    "explanation": "يا {name}، قبل أن تأكلي، اطلبي من الله أن يجعل طعامك خيراً لك. واطلبي منه أيضاً أن يحفظك ويحميك. وبعد ذلك ابدئي أكلك، وأنتِ تذكرين اسم الله.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:33.667Z"
+  },
+  {
+    "id": "adhkar-food-after",
+    "band": "older",
+    "gender": "boy",
+    "meaningSha256": "1ae2256d8074a47d6ddf84dc481be7146c21e1ce44d228af8b08fb6303ed73ae",
+    "explanation": "يا {name}، بعد أن تنتهي من الطعام تشكر الله على نعمتين: الأولى نعمة الطعام والشراب التي يحتاجها جسمك، والثانية نعمة الهداية إلى دينه، وهي أعظم من الأولى. فهذا الذكر يذكّرك بأن أكبر ما أُعطيت ليس ما في الصحن.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:52.019Z"
+  },
+  {
+    "id": "adhkar-food-after",
+    "band": "older",
+    "gender": "girl",
+    "meaningSha256": "1ae2256d8074a47d6ddf84dc481be7146c21e1ce44d228af8b08fb6303ed73ae",
+    "explanation": "يا {name}، بعد أن تنتهي من الطعام تشكرين الله على نعمتين: الأولى نعمة الطعام والشراب التي يحتاجها جسمك، والثانية نعمة الهداية إلى دينه، وهي أعظم من الأولى. فهذا الذكر يذكّرك بأن أكبر ما أُعطيتِ ليس ما في الصحن.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:55.805Z"
+  },
+  {
+    "id": "adhkar-food-after",
+    "band": "young",
+    "gender": "boy",
+    "meaningSha256": "671b0399548683d5f5a8a0e950e781897e7ab2927ffd658cf317304f6c502326",
+    "explanation": "يا {name}، بعد أن تنتهي من الأكل والشرب، تشكر الله على الطعام وعلى الماء. وتشكره أيضاً على شيء أكبر منهما، لأنه دلّك على دينه.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:44.981Z"
+  },
+  {
+    "id": "adhkar-food-after",
+    "band": "young",
+    "gender": "girl",
+    "meaningSha256": "671b0399548683d5f5a8a0e950e781897e7ab2927ffd658cf317304f6c502326",
+    "explanation": "يا {name}، بعد أن تنتهي من الأكل والشرب، قولي شكراً لله على الطعام الذي أكلتِه وعلى الماء الذي شربتِه. وقولي له شكراً أيضاً على شيء أكبر منهما، وهو أنه دلّكِ على دينه.",
+    "model": "anthropic/claude-sonnet-5.5",
+    "generatedAt": "2026-10-06T15:47:48.619Z"
+  }
+]

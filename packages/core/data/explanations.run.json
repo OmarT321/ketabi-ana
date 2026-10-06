@@ -1,16 +1,93 @@
 {
-  "at": "2026-10-06T15:16:06.124Z",
-  "model": "openai/gpt-5.6-luna",
+  "at": "2026-10-06T15:47:55.813Z",
+  "model": "anthropic/claude-sonnet-5.5",
   "calls": {
-    "rewrite": 1,
-    "judge": 0
+    "rewrite": 17,
+    "judge": 16
   },
-  "stopReason": "adhkar-waking/young/boy: provider error or timeout (GatewayInternalServerError 403)",
+  "stopReason": null,
   "attempts": [
     {
       "label": "adhkar-waking/young/boy",
       "reasons": [],
-      "ms": 2056
+      "ms": 6514
+    },
+    {
+      "label": "adhkar-waking/young/girl",
+      "reasons": [],
+      "ms": 4152
+    },
+    {
+      "label": "adhkar-waking/older/boy",
+      "reasons": [],
+      "ms": 9233
+    },
+    {
+      "label": "adhkar-waking/older/girl",
+      "reasons": [],
+      "ms": 3563
+    },
+    {
+      "label": "adhkar-dressing/young/boy",
+      "reasons": [],
+      "ms": 3458
+    },
+    {
+      "label": "adhkar-dressing/young/girl",
+      "reasons": [],
+      "ms": 3556
+    },
+    {
+      "label": "adhkar-dressing/older/boy",
+      "reasons": [],
+      "ms": 4321
+    },
+    {
+      "label": "adhkar-dressing/older/girl",
+      "reasons": [],
+      "ms": 4689
+    },
+    {
+      "label": "adhkar-food-before/young/boy",
+      "reasons": [],
+      "ms": 3461
+    },
+    {
+      "label": "adhkar-food-before/young/girl",
+      "reasons": [
+        "schema"
+      ],
+      "ms": 7337
+    },
+    {
+      "label": "adhkar-food-before/older/boy",
+      "reasons": [],
+      "ms": 3637
+    },
+    {
+      "label": "adhkar-food-before/older/girl",
+      "reasons": [],
+      "ms": 4415
+    },
+    {
+      "label": "adhkar-food-after/young/boy",
+      "reasons": [],
+      "ms": 3262
+    },
+    {
+      "label": "adhkar-food-after/young/girl",
+      "reasons": [],
+      "ms": 3638
+    },
+    {
+      "label": "adhkar-food-after/older/boy",
+      "reasons": [],
+      "ms": 3400
+    },
+    {
+      "label": "adhkar-food-after/older/girl",
+      "reasons": [],
+      "ms": 3786
     }
   ]
 }

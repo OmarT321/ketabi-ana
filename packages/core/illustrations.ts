@@ -37,7 +37,7 @@ export const POSE_PRESET: Record<Pose, string> = {
 /** The approved negative list, split (scene decision 3) into the part that
  * applies to every image and the part that applies only to a child on white. */
 export const NEGATIVE_COMMON =
-  "nun, nun habit, wimple, white forehead band, stiff veil, black and white habit, cross, rosary, crucifix, church, joined palms, interlocked fingers, praying hands pressed together, niqab, face covering, visible hair strands, mosque, minaret, dome, Kaaba, holy site, Quran, open book with text, arabic calligraphy, any text, any letters, 3D render, photorealistic, flat vector art, cel shading, hard outlines, 2D flat illustration, sticker style, clip art, coloring book, low detail, deformed hands, extra fingers, four fingers, missing fingers, fused fingers, malformed hands, distorted face, adult, multiple children, watermark, logo";
+  "nun, nun habit, wimple, white forehead band, stiff veil, black and white habit, cross, rosary, crucifix, church, joined palms, interlocked fingers, praying hands pressed together, niqab, face covering, visible hair strands, mosque, minaret, dome, Kaaba, holy site, Quran, open book with text, arabic calligraphy, any text, any letters, 3D render, photorealistic, flat vector art, cel shading, hard outlines, 2D flat illustration, sticker style, clip art, coloring book, low detail, jewelry, tassels, pendants, necklace, hanging ornaments, deformed hands, extra fingers, four fingers, missing fingers, fused fingers, malformed hands, distorted face, adult, multiple children, watermark, logo";
 export const NEGATIVE_WHITE_BACKGROUND =
   "background scenery, floor, furniture, props, shadow on background";
 /** Last sentence of the reference and scene prompts (owner's decision). */

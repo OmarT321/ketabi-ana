@@ -2110,7 +2110,7 @@ details > summary::marker {
 }
 /* Scene picture, by layout only (the generation prompt is untouched):
    - it starts --scene-top below the page top (card end + at least 4% of the page),
-   - sits on the bottom edge, at most --scene-width of the page wide,
+   - sits a small gap above the bottom edge, at most --scene-width of the page wide,
    - shows --scene-crop of the picture's height (variant C, owner's choice), so the
      child is cut at the waist and reads larger;
    - --scene-shift moves that window down the picture (object-position) for a pose
@@ -2121,7 +2121,7 @@ details > summary::marker {
   --scene-crop: 0.68;
   position: absolute;
   top: var(--scene-top);
-  bottom: 0;
+  bottom: 3cqw;
   inset-inline: 0;
   margin: 0;
   max-width: none;
@@ -2134,12 +2134,21 @@ details > summary::marker {
 .story-illustration > .scene-composite {
   width: 78%;
   max-height: 100%;
-  border-radius: 0;
-  box-shadow: none;
   object-fit: contain;
   object-position: bottom;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 16%);
-  mask-image: linear-gradient(to bottom, transparent, #000 16%);
+}
+/* Picture frame, in the text card's family: rounded corners that cut the picture,
+   a thin translucent white edge on a faint white ground. No shadow, no fade. */
+.book-reader .story-illustration > .scene,
+.book-reader .story-illustration > .scene-composite,
+.book-reader .story-illustration > .scene-art {
+  border-radius: 28px;
+  border: 3px solid rgb(255 255 255 / 35%);
+  background: rgb(255 255 255 / 12%);
+  overflow: hidden;
+  box-shadow: none;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 /* Without a dua layer the CSS card and its source line end lower. */
 .book-reader .paper-leaf:not(.has-dua) .story-illustration {
@@ -2154,10 +2163,6 @@ details > summary::marker {
   aspect-ratio: 880 / calc(1184 * var(--scene-crop));
   object-fit: cover;
   object-position: 50% var(--scene-shift, 0%);
-  border-radius: 0;
-  box-shadow: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 5%);
-  mask-image: linear-gradient(to bottom, transparent, #000 5%);
 }
 /* A standing child's waist is above the window's end even at the top (0%), so it
    stays there; a sitting child's lap is lower, so its window moves down. */
@@ -2234,6 +2239,24 @@ details > summary::marker {
   height: 92%;
   object-fit: contain;
   object-position: bottom;
+}
+/* Generated cover child (880×1184, transparent around the child): the picture is
+   --cover-width of the cover wide, cut at --cover-crop of its height (mid-shin, just
+   above the feet) and set on the bottom edge; the head stays clear of the line. */
+.book-reader .cover-child:has(> img) {
+  --cover-width: 78%;
+  --cover-crop: 0.83;
+  height: auto;
+  width: var(--cover-width);
+}
+.book-reader .cover-child > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: none;
+  aspect-ratio: 880 / calc(1184 * var(--cover-crop));
+  object-fit: cover;
+  object-position: top;
 }
 .cover-mark {
   position: absolute;

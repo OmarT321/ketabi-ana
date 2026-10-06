@@ -10,6 +10,7 @@ import {
   POSE_PRESET,
   SAME_CHILD,
   SAME_COLORS,
+  CRITICAL,
   SCENE_NEGATIVE,
   SCENE_POSE,
   STYLE,
@@ -162,7 +163,8 @@ test("every picture uses the style text; the dressing scene alone adds its negat
     assert.equal(c.prompt!.includes(SCENE_NEGATIVE.home!), c.op === "withReference" && c.prompt!.includes("wardrobe and a small plant"));
   }
   assert.ok(calls.some((c) => c.prompt?.includes(SCENE_NEGATIVE.home!)));
-  assert.ok(outfitPreset("girl").includes("scarf in dusty pink"));
+  assert.ok(outfitPreset("girl").includes("khimar in dusty pink that fully covers the head"));
+  for (const c of calls.filter((c) => c.prompt)) assert.ok(c.prompt!.endsWith(CRITICAL), "the critical line closes every prompt");
 });
 
 test("no verdict from the same-child comparison keeps the picture and redoes nothing", async () => {

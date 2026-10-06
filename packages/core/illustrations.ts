@@ -5,15 +5,20 @@ import type { AgeBand, Gender, Lesson, Pose, SceneName } from "./types";
 import { logImageCheckFailure, logSameChildNoOutput } from "./log";
 
 // ── Approved prompt parts (stage 4.4). Do not reword. ───────────────────────
+/** Added to all four outfits (owner's decision). */
+const COVERAGE =
+  "long sleeves reaching the wrists, and the garment reaching the ankles, feet covered or in simple flat shoes";
 export type Outfit = "GIRL_HIJAB" | "BOY_THOBE" | "GIRL_DAILY" | "BOY_DAILY";
 const OUTFIT_TEXT: Record<Outfit, string> = {
   GIRL_HIJAB:
-    "a soft one-piece cotton khimar in [COLOR] covering the hair completely and closed softly under the chin, flowing over the shoulders, whole face visible; under it a long loose dress in [COLOR] reaching the ankles; simple flat shoes",
+    "a soft one-piece khimar in [COLOR] that fully covers the head, the hairline, the forehead edge, the ears and the neck, closed softly under the chin with no hair visible anywhere, flowing over the shoulders, whole face visible; under it a long loose dress in [COLOR] reaching the ankles; simple flat shoes; " +
+    COVERAGE,
   BOY_THOBE:
-    "a plain white thobe reaching the ankles, no embroidery, no headwear; flat sandals",
+    "a plain white thobe reaching the ankles, no embroidery, no headwear; flat sandals; " + COVERAGE,
   GIRL_DAILY:
-    "a loose long-sleeved tunic in [COLOR] over loose trousers, hair covered with a simple soft scarf in [COLOR], whole face visible",
-  BOY_DAILY: "a plain long-sleeved shirt in [COLOR] over loose trousers",
+    "a loose long-sleeved tunic in [COLOR] over loose trousers, a soft one-piece khimar in [COLOR] that fully covers the head, the hairline, the forehead edge, the ears and the neck, closed softly under the chin with no hair visible anywhere, whole face visible; " +
+    COVERAGE,
+  BOY_DAILY: "a plain long-sleeved shirt in [COLOR] over loose trousers; " + COVERAGE,
 };
 /** One outfit and one colour per book, so every picture shows the same clothes. */
 export const BOOK_OUTFIT: Record<Gender, { outfit: Outfit; color: string }> = {
@@ -35,6 +40,8 @@ export const NEGATIVE_COMMON =
   "nun, nun habit, wimple, white forehead band, stiff veil, black and white habit, cross, rosary, crucifix, church, joined palms, interlocked fingers, praying hands pressed together, niqab, face covering, visible hair strands, mosque, minaret, dome, Kaaba, holy site, Quran, open book with text, arabic calligraphy, any text, any letters, 3D render, photorealistic, flat vector art, cel shading, hard outlines, 2D flat illustration, sticker style, clip art, coloring book, low detail, deformed hands, extra fingers, four fingers, missing fingers, fused fingers, malformed hands, distorted face, adult, multiple children, watermark, logo";
 export const NEGATIVE_WHITE_BACKGROUND =
   "background scenery, floor, furniture, props, shadow on background";
+/** Last sentence of the reference and scene prompts (owner's decision). */
+export const CRITICAL = " Critical: no hair visible at all, sleeves to the wrists, garment to the ankles.";
 export const SAME_CHILD = "same child, same face, same clothing as the reference";
 
 const childAge = (band: AgeBand) => (band === "young" ? 6 : 10);
@@ -49,7 +56,7 @@ export const SCENE_POSE: Record<Pose, string> = {
 export const SAME_COLORS = "same clothing colors as the reference image";
 /** The picture style (owner's text, letter for letter). */
 export const STYLE =
-  "Soft semi-realistic 2.5D digital painting, children's storybook illustration style. Rendered with volumetric lighting, gentle rim light, soft shadows and subtle depth of field. Smooth painterly shading with visible light falloff, not flat colors and not cel shading. Stylized child proportions with large expressive eyes, soft rounded features, warm realistic skin tones and natural hair strands. Richly detailed environment with real perspective and depth. Warm cinematic mood, polished and professional, high detail.";
+  "Soft painterly digital illustration with gentle dimensional shading, children's storybook illustration style. Rendered with volumetric lighting, gentle rim light, soft shadows and subtle depth of field. Smooth painterly shading with visible light falloff, not flat colors and not cel shading. Stylized child proportions with large expressive eyes, soft rounded features, warm realistic skin tones. Rich depth and real perspective in the rendering. Warm cinematic mood, polished and professional, high detail.";
 const wardrobeAndPose = (gender: Gender, band: AgeBand, pose: string) =>
   `${STYLE} Illustration of a ${gender === "girl" ? "GIRL" : "BOY"} aged ${childAge(band)}, friendly rounded proportions, warm and calm mood. Preserve the same child's facial features from the reference. Wardrobe (exact, do not vary): ${outfitPreset(gender)} Pose: ${pose} Expression: calm and content, gentle smile, eyes open.`;
 // flux-pro/kontext takes no negative-prompt field, so the list goes in the prompt.
@@ -79,7 +86,8 @@ export const PHOTO_LINE =
 /** createAvatar prompt (approved): the child alone on white. */
 export const referencePrompt = (gender: Gender, band: AgeBand, pose: Pose = "standing") =>
   `${wardrobeAndPose(gender, band, POSE_PRESET[pose])} Entire body visible head to feet, centered, facing the viewer at a slight angle, generous empty margin on all sides. Hands clearly visible with exactly five fingers on each hand, fingers separated and well-formed. Even soft lighting. Isolated on a solid flat pure white background, no texture, no shadow, no props, no scenery, no objects.` +
-  avoid(NEGATIVE_COMMON, NEGATIVE_WHITE_BACKGROUND);
+  avoid(NEGATIVE_COMMON, NEGATIVE_WHITE_BACKGROUND) +
+  CRITICAL;
 /** The child on white again, from the reference, for a composite scene. */
 export const childOnWhitePrompt = (gender: Gender, band: AgeBand, pose: Pose) =>
   referencePrompt(gender, band, pose).replace(" Avoid:", ` ${SAME_CHILD}. Avoid:`);
@@ -101,8 +109,9 @@ export const SCENE_NEGATIVE: Partial<Record<SceneName, string>> = {
 /** Second wording (scene decision 3), awaiting the owner's approval: the same
  * wardrobe, pose and expression, with the white-background line replaced by the scene. */
 export const scenePrompt = (gender: Gender, band: AgeBand, pose: Pose, scene: SceneName) =>
-  `${wardrobeAndPose(gender, band, SCENE_POSE[pose])} ${SAME_CHILD}, ${SAME_COLORS}. Entire body visible head to feet, the child in the lower middle of the picture, ${SCENE_TEXT[scene]}. Portrait 3:4, soft even lighting, storybook picture with simple background shapes.` +
-  avoid(NEGATIVE_COMMON, ...(SCENE_NEGATIVE[scene] ? [SCENE_NEGATIVE[scene]] : []));
+  `${wardrobeAndPose(gender, band, SCENE_POSE[pose])} ${SAME_CHILD}, ${SAME_COLORS}. Entire body visible head to feet, the child in the lower middle of the picture, ${SCENE_TEXT[scene]}. Portrait 3:4, soft even lighting, storybook picture with detailed background with real perspective and depth.` +
+  avoid(NEGATIVE_COMMON, ...(SCENE_NEGATIVE[scene] ? [SCENE_NEGATIVE[scene]] : [])) +
+  CRITICAL;
 
 // ── Gates ───────────────────────────────────────────────────────────────────
 /** A whole scene may be generated only for scene_mode "generated" and an

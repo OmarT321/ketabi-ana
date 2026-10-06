@@ -10,11 +10,7 @@ import {
   Send,
 } from "lucide-react";
 import { buildStoryBook } from "@platform/core/story";
-import {
-  REVIEW_BADGE,
-  isApproved,
-  sourceLine,
-} from "@platform/core/content";
+import { sourceLine } from "@platform/core/content";
 import type {
   Gender,
   Lesson,
@@ -38,12 +34,6 @@ type Page =
 const ar = (value: number) => value.toLocaleString("ar-SA");
 const named = (value: string, name: string) => value.replaceAll("{name}", name);
 export const PARENT_LINE = COPY.book.parentLine;
-
-export function ReviewBadge({ lessons }: { lessons: readonly Lesson[] }) {
-  return lessons.some((lesson) => !isApproved(lesson)) ? (
-    <span className="review-badge">{REVIEW_BADGE}</span>
-  ) : null;
-}
 
 export function BookReader({
   entries,
@@ -132,7 +122,6 @@ export function BookReader({
             <h3 id="book-title" tabIndex={-1}>
               {named(story.title, profile.name)}
             </h3>
-            <ReviewBadge lessons={lessons} />
           </div>
           <div className="reader-actions">
             <button
@@ -316,9 +305,6 @@ function BookCover({
       <span className="cover-mark" aria-label={COPY.book.coverMark}>
         {COPY.book.coverMark}
       </span>
-      <div className="cover-badge">
-        <ReviewBadge lessons={story.items.map((entry) => entry.lesson)} />
-      </div>
       {onOpen && (
         <button type="button" className="cover-open" onClick={onOpen}>
           {COPY.book.open}
@@ -445,6 +431,7 @@ function BookPage({
             </ul>
             <div className="book-colophon">
               <p>{PARENT_LINE}</p>
+              <p className="source-note">{COPY.book.contentLine}</p>
               {story.items.some((entry) => entry.mode === "generated") && (
                 <p className="source-note">{COPY.book.explanationGenerated}</p>
               )}
@@ -471,7 +458,6 @@ function BookPage({
         />
       )}
       <footer className="folio">
-        <ReviewBadge lessons={lessons} />
         <span>{ar(number)}</span>
       </footer>
     </article>

@@ -1893,26 +1893,7 @@ details > summary::marker {
   }
 }
 
-/* Content structure (stage 1): review badge, scope note, per-item question, closing. */
-.review-badge {
-  display: inline-block;
-  padding: 1px 10px;
-  border: 1px solid #b7791f;
-  border-radius: 999px;
-  background: #fff7e6;
-  color: #7a4b00;
-  font-size: 0.78rem;
-  line-height: 1.7;
-  white-space: nowrap;
-}
-.scope-note {
-  margin-top: 12px;
-  padding: 8px 12px;
-  border-inline-start: 3px solid var(--plum);
-  background: var(--paper);
-  color: var(--ink);
-  font-size: 0.95rem;
-}
+/* Content structure (stage 1): per-item question, closing. */
 .quiz-card {
   margin-top: 18px;
   padding: 14px 16px;
@@ -2201,9 +2182,6 @@ details > summary::marker {
 .book-reader .folio > span:after {
   content: none;
 }
-.book-reader .folio .review-badge {
-  font-size: 2.3cqw;
-}
 
 /* Cover. */
 .cover-name {
@@ -2268,12 +2246,6 @@ details > summary::marker {
   background: rgb(255 255 255 / 88%);
   color: #2a1a6e;
   font: 700 3.4cqw/1.5 var(--font-display), var(--font-body);
-}
-.cover-badge {
-  position: absolute;
-  top: 2%;
-  left: 3%;
-  z-index: 3;
 }
 .book-reader .cover-open {
   position: absolute;

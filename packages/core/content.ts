@@ -46,9 +46,6 @@ export function sourceLine(lesson: Lesson) {
     ? lesson.source
     : `${lesson.source} · ${lesson.grade}`;
 }
-export const REVIEW_BADGE = COPY.review.badge;
 export const isApproved = (lesson: Lesson) => lesson.review.status === "approved";
 
 export const reviewNotice = COPY.review.noticePreview;
-// Update COPY.review.scope when the manasik item arrives.
-export const scopeNotice = COPY.review.scope;

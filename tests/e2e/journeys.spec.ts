@@ -95,9 +95,6 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
   });
   await page.goto(qindeel);
   await expect(page.locator("[data-section]")).toHaveCount(3);
-  await expect(page.getByTestId("scope-note")).toHaveText(
-    "نسخة تجريبية فيها 4 أذكار، وتُضاف أذكار أخرى لاحقًا.",
-  );
   await expect(page.locator("#child-age option")).toHaveCount(8);
   await expect(page.locator("#child-age option").first()).toHaveAttribute("value", "5");
   await page.locator("#child-name").fill("ليان");
@@ -126,14 +123,12 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
   await expect(cover).toContainText("كتاب ليان");
   await expect(cover.getByTestId("child-name")).toHaveText("ليان");
   await expect(cover).toContainText("أذكاري اليومية رفيقي كل يوم");
-  await expect(cover.locator(".review-badge")).toHaveText("قيد المراجعة");
   await page.getByRole("button", { name: "افتح الكتاب", exact: true }).click();
   await expect(reader.getByTestId("book-page")).toHaveCount(2);
   await expect(reader.getByTestId("progress")).toHaveText("الموقف ١ من ٣");
   const textPage = reader.locator(".page-text");
   const meaningPage = reader.locator(".page-meaning");
-  await expect(textPage.locator(".review-badge")).toHaveText("قيد المراجعة");
-  await expect(textPage.locator(".source-link")).toHaveText("المصدر قيد التوثيق");
+  await expect(textPage.locator(".source-link")).toHaveText("");
   const shown = (await textPage.locator(".sacred-text").innerText()).trim();
   const item = adhkar.find((x) => x.text === shown);
   expect(item, "text matches the content file exactly").toBeTruthy();
@@ -193,13 +188,13 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
   await expect(reader.getByTestId("book-page")).toHaveCount(1);
   await expect(reader.locator(".page-closing h4")).toHaveText("ما تعلّمتَه اليوم");
   await expect(reader.locator(".page-closing")).toContainText(
-    "النصوص منقولة من مصادرها من منتج «حصن الطفل»",
+    "النصوص من منتج «حصن الطفل»، والمعاني من إعداد فريق المشروع وتخضع للمراجعة الشرعية.",
   );
-  // The closing page: the title, the situations, the parent line once, and the
-  // note on generated explanations once.
-  await expect(reader.locator(".page-closing .book-colophon > p")).toHaveCount(warm ? 2 : 1);
+  // The closing page: the title, the situations, the parent line once, the content
+  // line once, and the note on generated explanations once.
+  await expect(reader.locator(".page-closing .book-colophon > p")).toHaveCount(warm ? 3 : 2);
   if (warm)
-    await expect(reader.locator(".page-closing .source-note")).toHaveText(
+    await expect(reader.locator(".page-closing .source-note").last()).toHaveText(
       "شروح هذا الكتاب صاغها الحاسوب من المعاني المكتوبة.",
     );
   expect(sent.join("")).not.toContain("ليان");

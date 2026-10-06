@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import type { Lesson } from "@platform/core/types";
-import { REVIEW_BADGE, isApproved, sourceLine } from "@platform/core/content";
+import { isApproved, sourceLine } from "@platform/core/content";
 import { COPY } from "@/lib/copy";
 
 export function SourcesCatalog() {
@@ -81,12 +81,10 @@ export function SourcesCatalog() {
               <article key={lesson.id} className="source-item">
                 <h3>{lesson.situation}</h3>
                 <blockquote>{lesson.text}</blockquote>
-                <p>{sourceLine(lesson)}</p>
-                <span className="review-status">
-                  {isApproved(lesson)
-                    ? COPY.sources.reviewer(lesson.review.reviewer)
-                    : REVIEW_BADGE}
-                </span>
+                {sourceLine(lesson) && <p>{sourceLine(lesson)}</p>}
+                {isApproved(lesson) && (
+                  <span className="review-status">{COPY.sources.reviewer(lesson.review.reviewer)}</span>
+                )}
               </article>
             ))}
         </div>

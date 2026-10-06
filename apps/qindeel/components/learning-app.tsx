@@ -5,21 +5,19 @@ import { ArrowLeft, Check, LoaderCircle } from "lucide-react";
 import type { ChildReply, Gender, Lesson, LessonResponse } from "@platform/core/types";
 import type { BookImages } from "@platform/core/illustrations";
 import { buildStoryBook, pickSession } from "@platform/core/story";
-import { MAX_AGE, MIN_AGE, ageBand, scopeNotice } from "@platform/core/content";
+import { MAX_AGE, MIN_AGE, ageBand } from "@platform/core/content";
 import { QuestionStep } from "./question-step";
 import { Header } from "./site-chrome";
 import { Scene } from "./scene";
-import { BookReader, ReviewBadge, type ReaderProfile } from "./book-reader";
+import { BookReader, type ReaderProfile } from "./book-reader";
 import { request } from "./client-api";
 import { COPY } from "@/lib/copy";
 
-const DEFAULT_NOTICE: string = COPY.review.noticeDefault;
 
 export default function LearningApp() {
   const [catalog, setCatalog] = useState<Lesson[]>([]);
   const [catalogBusy, setCatalogBusy] = useState(true);
   const [catalogError, setCatalogError] = useState("");
-  const [notice, setNotice] = useState(DEFAULT_NOTICE);
   // Upload path: shown only when the server allows it. The photo stays in page
   // memory for one book request and is dropped right after it.
   const [allowUpload, setAllowUpload] = useState(false);
@@ -49,13 +47,12 @@ export default function LearningApp() {
     setCatalogBusy(true);
     setCatalogError("");
     try {
-      const data = await request<{ lessons: Lesson[]; reviewNotice: string; allowUpload?: boolean }>(
+      const data = await request<{ lessons: Lesson[]; allowUpload?: boolean }>(
         "/api/catalog",
         undefined,
         signal,
       );
       setCatalog(data.lessons);
-      setNotice(data.reviewNotice || DEFAULT_NOTICE);
       setAllowUpload(data.allowUpload === true);
     } catch (error) {
       if (!signal?.aborted)
@@ -200,9 +197,6 @@ export default function LearningApp() {
                 <em>{COPY.intro.titleLine2}</em>
               </h1>
               <p>{COPY.intro.body}</p>
-              <p className="scope-note" data-testid="scope-note">
-                {scopeNotice}
-              </p>
               <a className="quiet-link" href="#make-book">
                 {COPY.intro.start} <ArrowLeft size={18} />
               </a>
@@ -411,9 +405,7 @@ export default function LearningApp() {
                   ) : catalog.length === 0 ? (
                     <p role="status">{COPY.form.empty}</p>
                   ) : (
-                    <p className="selection-note">
-                      {COPY.form.selection} <ReviewBadge lessons={catalog} />
-                    </p>
+                    <p className="selection-note">{COPY.form.selection}</p>
                   )}
                   <div className="maker-bottom">
                     <button
@@ -445,7 +437,6 @@ export default function LearningApp() {
             )}
             <details id="family-note" className="family-note">
               <summary>{COPY.family.summary}</summary>
-              <p>{notice}</p>
               <p>{allowUpload ? COPY.family.privacyWithPhoto : COPY.family.privacy}</p>
               {allowUpload && <p>{COPY.family.photo}</p>}
               <p>{COPY.family.sent}</p>

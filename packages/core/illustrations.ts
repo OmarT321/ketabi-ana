@@ -31,7 +31,7 @@ export const POSE_PRESET: Record<Pose, string> = {
 /** The approved negative list, split (scene decision 3) into the part that
  * applies to every image and the part that applies only to a child on white. */
 export const NEGATIVE_COMMON =
-  "nun, nun habit, wimple, white forehead band, stiff veil, black and white habit, cross, rosary, crucifix, church, joined palms, interlocked fingers, praying hands pressed together, niqab, face covering, visible hair strands, mosque, minaret, dome, Kaaba, holy site, Quran, open book with text, arabic calligraphy, any text, any letters, 3D render, photorealistic, deformed hands, extra fingers, distorted face, adult, multiple children, watermark, logo";
+  "nun, nun habit, wimple, white forehead band, stiff veil, black and white habit, cross, rosary, crucifix, church, joined palms, interlocked fingers, praying hands pressed together, niqab, face covering, visible hair strands, mosque, minaret, dome, Kaaba, holy site, Quran, open book with text, arabic calligraphy, any text, any letters, 3D render, photorealistic, deformed hands, extra fingers, four fingers, missing fingers, fused fingers, malformed hands, distorted face, adult, multiple children, watermark, logo";
 export const NEGATIVE_WHITE_BACKGROUND =
   "background scenery, floor, furniture, props, shadow on background";
 export const SAME_CHILD = "same child, same face, same clothing as the reference";
@@ -44,7 +44,7 @@ const avoid = (...lists: string[]) => ` Avoid: ${lists.join(", ")}.`;
 
 /** createAvatar prompt (approved): the child alone on white. */
 export const referencePrompt = (gender: Gender, band: AgeBand, pose: Pose = "standing") =>
-  `${wardrobeAndPose(gender, band, pose)} Entire body visible head to feet, centered, facing the viewer at a slight angle, generous empty margin on all sides. Even soft lighting. Isolated on a solid flat pure white background, no texture, no shadow, no props, no scenery, no objects.` +
+  `${wardrobeAndPose(gender, band, pose)} Entire body visible head to feet, centered, facing the viewer at a slight angle, generous empty margin on all sides. Hands clearly visible with exactly five fingers on each hand, fingers separated and well-formed. Even soft lighting. Isolated on a solid flat pure white background, no texture, no shadow, no props, no scenery, no objects.` +
   avoid(NEGATIVE_COMMON, NEGATIVE_WHITE_BACKGROUND);
 /** The child on white again, from the reference, for a composite scene. */
 export const childOnWhitePrompt = (gender: Gender, band: AgeBand, pose: Pose) =>
@@ -256,7 +256,7 @@ const verdictSchema = z.object({
   anotherPerson: z.boolean(),
   sacredPlace: z.boolean(),
 });
-const visionModel = () => process.env.AI_VISION_MODEL || "openai/gpt-5.6-luna";
+const visionModel = () => process.env.AI_VISION_MODEL || "anthropic/claude-sonnet-5.5";
 
 export const falDeps: ImageDeps = {
   createReference: ({ prompt, seed }) =>

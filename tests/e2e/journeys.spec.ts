@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import adhkar from "../../packages/core/data/packs/adhkar.json" with { type: "json" };
+import warmed from "../../packages/core/data/explanations.cache.json" with { type: "json" };
 const qindeel = process.env.QINDEEL_URL || "http://localhost:3001";
 
 test("API validates input and rejects cross-origin mutations", async ({
@@ -120,13 +121,26 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
     await expect(textPage.locator(".leaf-dua")).toHaveAttribute("alt", item!.text);
     await expect(textPage.locator(".book-card")).toHaveCount(0);
   } else await expect(textPage.locator(".book-card.sacred-text")).toHaveCount(1);
-  // The child's name is on the cover only, never on the inner pages.
-  await expect(reader.getByTestId("book-page").first()).not.toContainText("ليان");
-  await expect(reader.getByTestId("book-page").last()).not.toContainText("ليان");
+  // The name is on the cover and in the explanation, never on the text page
+  // and never in a drawn layer (no text over it, no alt or file name carrying it).
+  await expect(textPage).not.toContainText("ليان");
+  for (const img of await reader.locator(".paper-leaf img").all()) {
+    expect(await img.getAttribute("alt")).not.toContain("ليان");
+    expect(await img.getAttribute("src")).not.toContain(encodeURIComponent("ليان"));
+  }
+  await expect(reader.locator(".leaf-name")).toHaveCount(0);
   await expect(reader.locator(".quiz-card, .answer-options")).toHaveCount(0);
   await expect(meaningPage.locator("h4")).toHaveText("ماذا يعني؟");
-  await expect(meaningPage.locator(".meaning-prose")).toHaveText(item!.meaning_older);
-  await expect(meaningPage.locator(".source-note")).toHaveText("المعنى كما كُتب في المصدر");
+  // The base explanation: the warmed one (addressing the child by name) when
+  // cached, else the meaning as written.
+  const warm = warmed.find((e) => e.id === item!.id && e.band === "older" && e.gender === "girl")
+    ?.explanation;
+  await expect(meaningPage.locator(".meaning-prose")).toHaveText(
+    (warm ?? item!.meaning_older).replaceAll("{name}", "ليان"),
+  );
+  await expect(meaningPage.locator(".source-note")).toHaveText(
+    warm ? "صاغ الحاسوب هذا الشرح من المعنى المكتوب" : "المعنى كما كُتب في المصدر",
+  );
   await page.screenshot({
     path: testInfo.outputPath("book-spread.png"),
     fullPage: true,

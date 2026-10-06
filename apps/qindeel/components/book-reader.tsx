@@ -403,7 +403,8 @@ function BookPage({
       ) : (
         <TopLayer image={top.image} title={top.title} />
       )}
-      {/* Inner pages carry «حِصنُ الطفل» as drawn; the child's name is on the cover only. */}
+      {/* Inner pages carry «حِصنُ الطفل» as drawn. The name is on the cover and in the
+          explanation, never on the text page or in a drawn layer. */}
       <div className="leaf-body">
         {item.kind === "text" &&
           (dua ? (

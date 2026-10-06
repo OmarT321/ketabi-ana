@@ -61,7 +61,7 @@ export type Explanation = {
   providerError?: string;
 };
 
-const textModel = () => process.env.AI_TEXT_MODEL || "openai/gpt-5.6-luna";
+const textModel = () => process.env.AI_TEXT_MODEL || "anthropic/claude-sonnet-5.5";
 const schemaError = (error: unknown) =>
   NoObjectGeneratedError.isInstance(error) ||
   TypeValidationError.isInstance(error) ||

@@ -34,7 +34,7 @@ const rejected: {
   reasons: string[];
   at: string;
 }[] = [];
-const model = process.env.AI_TEXT_MODEL || "openai/gpt-5.6-luna";
+const model = process.env.AI_TEXT_MODEL || "anthropic/claude-sonnet-5.5";
 
 // Run limits set by the content owner:
 //  - at most two attempts per combination (generateExplanation retries once);

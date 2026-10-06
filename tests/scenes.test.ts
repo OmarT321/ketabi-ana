@@ -5,22 +5,18 @@ import {
   illustrateBook,
   mayGenerateScene,
   outfitPreset,
-  NEGATIVE_COMMON,
-  NEGATIVE_WHITE_BACKGROUND,
+  ONE_PERSON,
   POSE_PRESET,
-  SAME_CHILD,
-  SAME_COLORS,
-  CRITICAL,
+  critical,
   SCENE_NEGATIVE,
   SCENE_POSE,
   STYLE,
-  seedFor,
   type ImageDeps,
 } from "../packages/core/illustrations";
 import { getBookImages } from "../packages/core/server";
 import type { Lesson } from "../packages/core/types";
 
-type Call = { op: string; prompt?: string; seed?: number; referenceUrl?: string; url?: string };
+type Call = { op: string; prompt?: string; referenceUrl?: string; url?: string };
 /** Simulated fal + vision providers. Nothing here touches the network. */
 function fakeDeps(
   opts: { failCheck?: (url: string) => boolean; sameChild?: (url: string) => boolean | null } = {},
@@ -28,12 +24,12 @@ function fakeDeps(
   const calls: Call[] = [];
   let n = 0;
   const deps: ImageDeps = {
-    async createReference({ prompt, seed }) {
-      calls.push({ op: "reference", prompt, seed });
+    async createReference({ prompt }) {
+      calls.push({ op: "reference", prompt });
       return `https://img.test/ref-${++n}.png`;
     },
-    async withReference({ prompt, seed, referenceUrl }) {
-      calls.push({ op: "withReference", prompt, seed, referenceUrl });
+    async withReference({ prompt, referenceUrl }) {
+      calls.push({ op: "withReference", prompt, referenceUrl });
       return `https://img.test/pic-${++n}.png`;
     },
     async removeBackground(url) {
@@ -59,25 +55,23 @@ test("every item declares a valid scene_mode", () => {
     assert.ok(["generated", "composite"].includes(lesson.scene_mode), lesson.id);
 });
 
-test("one reference child first, then every picture from it with the same outfit, seed and negative list", async () => {
+test("one reference child first, then every picture from it with the same outfit and prohibitions", async () => {
   const { deps, calls } = fakeDeps();
   const result = await illustrateBook({ ...input, lessons: book }, deps);
   assert.equal(calls[0].op, "reference");
   const reference = "https://img.test/ref-1.png";
-  const seed = seedFor(input.sessionId);
   const scenes = calls.filter((c) => c.op === "withReference");
   assert.equal(scenes.length, 3);
   for (const c of [calls[0], ...scenes]) {
-    assert.equal(c.seed, seed, "one seed for the whole book");
     assert.ok(c.prompt!.includes(outfitPreset("girl")), "outfit text, letter for letter");
-    assert.ok(c.prompt!.includes(NEGATIVE_COMMON), "the same negative list");
+    assert.ok(c.prompt!.includes(ONE_PERSON), "the same prohibitions");
   }
   for (const c of scenes) {
-    assert.equal(c.referenceUrl, reference);
-    assert.ok(c.prompt!.includes(SAME_CHILD));
-    assert.ok(!c.prompt!.includes(NEGATIVE_WHITE_BACKGROUND), "a whole scene keeps its background");
+    assert.equal(c.referenceUrl, reference, "the reference as it came out, never the cut-out");
+    assert.ok(c.prompt!.startsWith("IDENTITY LOCK: The child in this picture is the same child"));
+    assert.ok(!c.prompt!.includes("pure white background"), "a whole scene keeps its background");
   }
-  assert.ok(calls[0].prompt!.includes(NEGATIVE_WHITE_BACKGROUND), "the reference is on white");
+  assert.ok(calls[0].prompt!.includes("pure white background"), "the reference is on white");
   assert.equal(result.cover, `${reference}#cut`, "cover: the reference with its background removed");
   for (const l of book) assert.equal(result.scenes[l.id]?.mode, "generated");
 });
@@ -86,7 +80,7 @@ test("only the scene and the pose change between pictures", async () => {
   const { deps, calls } = fakeDeps();
   await illustrateBook({ ...input, lessons: book }, deps);
   const prompts = calls.filter((c) => c.op === "withReference").map((c) => c.prompt!);
-  const wardrobe = (p: string) => p.slice(0, p.indexOf(" Pose:"));
+  const wardrobe = (p: string) => p.slice(0, p.indexOf(" POSE:"));
   assert.equal(new Set(prompts.map(wardrobe)).size, 1);
 });
 
@@ -98,8 +92,7 @@ test("a scene_mode=composite item never reaches the scene generation model", asy
   const pictures = calls.filter((c) => c.op === "withReference");
   assert.equal(pictures.length, 1, "only the child alone is generated");
   assert.ok(pictures[0].prompt!.includes("pure white background"));
-  assert.ok(pictures[0].prompt!.includes(NEGATIVE_WHITE_BACKGROUND));
-  for (const c of calls) assert.ok(!/mosque|prayer hall|Kaaba/i.test((c.prompt ?? "").split(" Avoid:")[0]));
+  for (const c of calls) assert.ok(!/mosque|prayer hall|Kaaba/i.test((c.prompt ?? "").split(" ONLY ONE PERSON:")[0]));
   const image = result.scenes["test-composite"];
   assert.equal(image?.mode, "composite");
   if (image?.mode === "composite") {
@@ -143,13 +136,12 @@ test("a picture of a different child is redone once from the same reference, the
 test("scenes repeat the outfit with the same colours and keep the hands closed or out of sight", async () => {
   const { deps, calls } = fakeDeps();
   await illustrateBook({ ...input, lessons: book }, deps);
-  assert.ok(calls[0].prompt!.includes(`Pose: ${POSE_PRESET.standing}`), "the reference keeps its approved pose");
-  assert.ok(!calls[0].prompt!.includes(SAME_COLORS));
+  assert.ok(calls[0].prompt!.includes(`POSE: ${POSE_PRESET.standing}`), "the reference keeps its approved pose");
   const scenes = calls.filter((c) => c.op === "withReference");
   scenes.forEach((c, i) => {
     assert.ok(c.prompt!.includes(outfitPreset("girl")));
-    assert.ok(c.prompt!.includes(`${SAME_CHILD}, ${SAME_COLORS}.`));
-    assert.ok(c.prompt!.includes(`Pose: ${SCENE_POSE[book[i].pose]}`));
+    assert.ok(c.prompt!.includes("the same clothing and clothing colours"));
+    assert.ok(c.prompt!.includes(`POSE: ${SCENE_POSE[book[i].pose]}`));
   });
 });
 
@@ -158,13 +150,13 @@ test("every picture uses the style text; the dressing scene alone adds its negat
   const { deps, calls } = fakeDeps();
   await illustrateBook({ ...input, lessons: [...book.filter((l) => l !== dressing), dressing] }, deps);
   for (const c of calls.filter((c) => c.prompt)) {
-    assert.ok(c.prompt!.startsWith(STYLE));
-    assert.ok(!/flat cartoon|clean simple shapes|soft cel shading/i.test(c.prompt!.split(" Avoid:")[0].replace(STYLE, "")));
+    assert.ok(c.prompt!.includes(`STYLE: ${STYLE}`));
+    assert.ok(!/flat cartoon|clean simple shapes|soft cel shading/i.test(c.prompt!.split(" STYLE — NOT ALLOWED:")[0].replace(STYLE, "")));
     assert.equal(c.prompt!.includes(SCENE_NEGATIVE.home!), c.op === "withReference" && c.prompt!.includes("wardrobe and a small plant"));
   }
   assert.ok(calls.some((c) => c.prompt?.includes(SCENE_NEGATIVE.home!)));
   assert.ok(outfitPreset("girl").includes("khimar in dusty pink that fully covers the head"));
-  for (const c of calls.filter((c) => c.prompt)) assert.ok(c.prompt!.endsWith(CRITICAL), "the critical line closes every prompt");
+  for (const c of calls.filter((c) => c.prompt)) assert.ok(c.prompt!.endsWith(critical("girl")), "the critical line closes every prompt");
 });
 
 test("no verdict from the same-child comparison keeps the picture and redoes nothing", async () => {

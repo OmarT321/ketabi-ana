@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { lessons } from "../packages/core/content";
-import { checkPhoto, PHOTO_LINE, PHOTO_MAX_BYTES, type ImageDeps } from "../packages/core/illustrations";
+import { checkPhoto, IDENTITY_FROM_PHOTO, PHOTO_MAX_BYTES, type ImageDeps } from "../packages/core/illustrations";
 import { getBookImages } from "../packages/core/server";
 
 const png = (extra = 0) =>
@@ -77,7 +77,7 @@ test("the photo reaches createAvatar only; every later picture uses the drawn re
   const reference = seen.filter((c) => (c as { op: string }).op === "reference") as { prompt: string; photo?: string }[];
   assert.equal(reference.length, 1);
   assert.equal(reference[0].photo, photo);
-  assert.ok(reference[0].prompt.endsWith(PHOTO_LINE));
+  assert.ok(reference[0].prompt.startsWith(IDENTITY_FROM_PHOTO));
   const elsewhere = seen.filter((c) => (c as { op: string }).op !== "reference");
   assert.ok(elsewhere.length > 0);
   for (const call of elsewhere) assert.ok(!JSON.stringify(call).includes(photo.slice(30)), "photo sent beyond createAvatar");
@@ -89,5 +89,5 @@ test("without a photo, createAvatar is the approved prompt alone", async () => {
   await getBookImages(request(), deps, () => true, () => true);
   const reference = seen.find((c) => (c as { op: string }).op === "reference") as { prompt: string; photo?: string };
   assert.equal(reference.photo, undefined);
-  assert.ok(!reference.prompt.includes(PHOTO_LINE));
+  assert.ok(!reference.prompt.includes(IDENTITY_FROM_PHOTO));
 });

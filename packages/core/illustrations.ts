@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { generateText, NoOutputGeneratedError, Output } from "ai";
 import { z } from "zod";
 import type { AgeBand, Gender, Lesson, Pose, SceneName } from "./types";
@@ -34,17 +33,22 @@ export const POSE_PRESET: Record<Pose, string> = {
   sitting: "sitting cross-legged on the floor, hands resting on the knees",
   walking: "walking forward with one foot stepping ahead",
 };
-/** The approved negative list, split (scene decision 3) into the part that
- * applies to every image and the part that applies only to a child on white. */
-export const NEGATIVE_COMMON =
-  "nun, nun habit, wimple, white forehead band, stiff veil, black and white habit, cross, rosary, crucifix, church, joined palms, interlocked fingers, praying hands pressed together, niqab, face covering, visible hair strands, mosque, minaret, dome, Kaaba, holy site, Quran, open book with text, arabic calligraphy, any text, any letters, 3D render, photorealistic, flat vector art, cel shading, hard outlines, 2D flat illustration, sticker style, clip art, coloring book, low detail, jewelry, tassels, pendants, necklace, hanging ornaments, deformed hands, extra fingers, four fingers, missing fingers, fused fingers, malformed hands, distorted face, adult, multiple children, watermark, logo";
-export const NEGATIVE_WHITE_BACKGROUND =
-  "background scenery, floor, furniture, props, shadow on background";
-/** Last sentence of the reference and scene prompts (owner's decision). */
-export const CRITICAL = " Critical: no hair visible at all, sleeves to the wrists, garment to the ankles.";
-export const SAME_CHILD = "same child, same face, same clothing as the reference";
-
+// ── Prompt (owner-approved structure) ──────────────────────────────────────
+// One paragraph in labelled parts: identity lock, the closed clothing list, pose,
+// scene, then every prohibition written inside the text (the image endpoint has
+// no negative-prompt field), the style and the critical coverage line last.
 const childAge = (band: AgeBand) => (band === "young" ? 6 : 10);
+const subject = (gender: Gender, band: AgeBand) =>
+  `a ${gender === "girl" ? "GIRL" : "BOY"} aged ${childAge(band)}`;
+
+const IDENTITY_FROM_REFERENCE =
+  "IDENTITY LOCK: The child in this picture is the same child as in the reference image. Keep exactly the face, face shape, eye colour, skin tone, age and gender from the reference, and the same clothing and clothing colours; take nothing else from it (not its pose, framing or white background).";
+/** Upload path only: the identity comes from the parent's photo, nothing else. */
+export const IDENTITY_FROM_PHOTO =
+  "IDENTITY LOCK: Draw the child from the reference photo in the style below. Keep exactly the face, face shape, eye colour, skin tone, age and gender; take nothing else from the photo (not its clothes, hair, accessories or background).";
+const clothing = (gender: Gender) =>
+  `CLOTHING — CLOSED LIST, EXACT, DO NOT VARY: ${outfitPreset(gender)}. CLOTHING — NOT ALLOWED: visible hair strands, niqab, face covering, jewelry, tassels, pendants, necklace, hanging ornaments.`;
+const EXPRESSION = "EXPRESSION: calm and content, gentle smile, eyes open.";
 /** Scene poses (owner's decision): the hands closed at the sides or out of sight,
  * since an open hand is where the scenes failed the five-finger question. */
 export const SCENE_POSE: Record<Pose, string> = {
@@ -52,15 +56,36 @@ export const SCENE_POSE: Record<Pose, string> = {
   sitting: "sitting cross-legged on the floor, hands resting in the lap, tucked under the long sleeves",
   walking: "walking forward with one foot stepping ahead, arms relaxed at the sides, hands closed softly into small fists",
 };
-/** Added to every scene after the wardrobe (owner's decision). */
-export const SAME_COLORS = "same clothing colors as the reference image";
+const REFERENCE_HANDS =
+  "Hands clearly visible with exactly five fingers on each hand, fingers separated and well-formed.";
+const WHITE_BACKGROUND =
+  "BACKGROUND: the child alone, entire body visible head to feet, centered, facing the viewer at a slight angle, generous empty margin on all sides, even soft lighting, isolated on a solid flat pure white background — no scenery, floor, furniture, props, objects, texture or shadow.";
+export const ONE_PERSON =
+  "ONLY ONE PERSON: this child is the only person in the picture — no adult, no other child, no twin, double or look-alike, no reflection of the child in a window or mirror.";
+const noWriting = (extra?: string) =>
+  `NO WRITING AND NO SACRED PLACES: no text, letters, numbers, Arabic calligraphy, pseudo-letters, open book with text, watermark or logo anywhere;${extra ? ` no ${extra};` : ""} no mosque, minaret, dome, Kaaba, holy site or Quran; no nun, nun habit, wimple, white forehead band, stiff veil, black and white habit, cross, rosary, crucifix or church; no joined palms, interlocked fingers or praying hands pressed together.`;
+const HANDS_AND_FACE =
+  "HANDS AND FACE — NOT ALLOWED: deformed hands, extra fingers, four fingers, missing fingers, fused fingers, malformed hands, distorted face.";
+const COMPOSITION = "COMPOSITION: portrait 3:4.";
 /** The picture style (owner's text, letter for letter). */
 export const STYLE =
   "Soft painterly digital illustration with gentle dimensional shading, children's storybook illustration style. Rendered with volumetric lighting, gentle rim light, soft shadows and subtle depth of field. Smooth painterly shading with visible light falloff, not flat colors and not cel shading. Stylized child proportions with large expressive eyes, soft rounded features, warm realistic skin tones. Rich depth and real perspective in the rendering. Warm cinematic mood, polished and professional, high detail.";
-const wardrobeAndPose = (gender: Gender, band: AgeBand, pose: string) =>
-  `${STYLE} Illustration of a ${gender === "girl" ? "GIRL" : "BOY"} aged ${childAge(band)}, friendly rounded proportions, warm and calm mood. Preserve the same child's facial features from the reference. Wardrobe (exact, do not vary): ${outfitPreset(gender)} Pose: ${pose} Expression: calm and content, gentle smile, eyes open.`;
-// flux-pro/kontext takes no negative-prompt field, so the list goes in the prompt.
-const avoid = (...lists: string[]) => ` Avoid: ${lists.join(", ")}.`;
+const STYLE_NOT_ALLOWED =
+  "STYLE — NOT ALLOWED: 3D render, photorealistic photograph, flat vector art, cel shading, hard outlines, 2D flat illustration, sticker style, clip art, coloring book, low detail.";
+/** Last sentence (owner's decision); the boy's outfit has no head covering. */
+export const critical = (gender: Gender) =>
+  gender === "girl"
+    ? "Critical: no hair visible at all, sleeves to the wrists, garment to the ankles."
+    : "Critical: sleeves to the wrists, garment to the ankles.";
+const tail = (gender: Gender, extra?: string) => [
+  ONE_PERSON,
+  noWriting(extra),
+  HANDS_AND_FACE,
+  COMPOSITION,
+  `STYLE: ${STYLE}`,
+  STYLE_NOT_ALLOWED,
+  critical(gender),
+];
 
 /** Upload path (off unless ALLOW_UPLOAD=true): one photo from the parent, used
  * only as the reference for createAvatar. Never stored, logged or sent anywhere
@@ -79,39 +104,58 @@ export function checkPhoto(dataUrl: string): string | null {
   if (!bytes.length || bytes.length > PHOTO_MAX_BYTES) return null;
   return PHOTO_MAGIC[match[1]].every((b, i) => bytes[i] === b) ? dataUrl : null;
 }
-/** Added to createAvatar only when a photo is the reference. */
-export const PHOTO_LINE =
-  " Draw the child in the reference photo in this style, keeping the face shape, skin tone and eye colour; the photo's clothes and background are not used.";
 
-/** createAvatar prompt (approved): the child alone on white. */
-export const referencePrompt = (gender: Gender, band: AgeBand, pose: Pose = "standing") =>
-  `${wardrobeAndPose(gender, band, POSE_PRESET[pose])} Entire body visible head to feet, centered, facing the viewer at a slight angle, generous empty margin on all sides. Hands clearly visible with exactly five fingers on each hand, fingers separated and well-formed. Even soft lighting. Isolated on a solid flat pure white background, no texture, no shadow, no props, no scenery, no objects.` +
-  avoid(NEGATIVE_COMMON, NEGATIVE_WHITE_BACKGROUND) +
-  CRITICAL;
+/** createAvatar: the child alone on white. From a photo, the identity lock opens
+ * it; without one there is no reference yet, so it names the child instead. */
+export const referencePrompt = (
+  gender: Gender,
+  band: AgeBand,
+  pose: Pose = "standing",
+  fromPhoto = false,
+) =>
+  [
+    fromPhoto ? IDENTITY_FROM_PHOTO : `SUBJECT: ${subject(gender, band)}.`,
+    clothing(gender),
+    `POSE: ${POSE_PRESET[pose]}. ${REFERENCE_HANDS}`,
+    EXPRESSION,
+    WHITE_BACKGROUND,
+    ...tail(gender),
+  ].join(" ");
 /** The child on white again, from the reference, for a composite scene. */
 export const childOnWhitePrompt = (gender: Gender, band: AgeBand, pose: Pose) =>
-  referencePrompt(gender, band, pose).replace(" Avoid:", ` ${SAME_CHILD}. Avoid:`);
+  [
+    IDENTITY_FROM_REFERENCE,
+    clothing(gender),
+    `POSE: ${POSE_PRESET[pose]}. ${REFERENCE_HANDS}`,
+    EXPRESSION,
+    WHITE_BACKGROUND,
+    ...tail(gender),
+  ].join(" ");
 
 // Everyday places only. A sacred place has no description here on purpose:
 // it can only ever be a composite on an approved background.
 const SCENE_TEXT: Partial<Record<SceneName, string>> = {
-  sleep: "a cozy bedroom at bedtime, on a bed under a quilt, warm bedside light",
-  morning: "a cheerful bedroom in morning sunlight beside a window with leafy trees",
+  sleep: "in a cozy bedroom at bedtime, on a bed under a quilt, warm bedside light",
+  morning: "in a cheerful bedroom in morning sunlight beside a window with leafy trees",
   food: "at a family dining table with a simple healthy meal and a glass of water",
   travel: "buckled safely in the passenger seat of a family car, countryside outside",
   home: "in a calm family room at home beside a wardrobe and a small plant",
 };
-/** Added to one scene's negative list only (owner's decision): the dressing scene
- * shows hanging clothes, where the model tends to draw marks that read as text. */
+/** Added to one scene's writing prohibitions only (owner's decision): the dressing
+ * scene shows hanging clothes, where the model tends to draw marks that read as text. */
 export const SCENE_NEGATIVE: Partial<Record<SceneName, string>> = {
   home: "clothing labels, price tags, brand logos, signage, printed patterns with letters",
 };
-/** Second wording (scene decision 3), awaiting the owner's approval: the same
- * wardrobe, pose and expression, with the white-background line replaced by the scene. */
+/** A scene, from the reference child. */
 export const scenePrompt = (gender: Gender, band: AgeBand, pose: Pose, scene: SceneName) =>
-  `${wardrobeAndPose(gender, band, SCENE_POSE[pose])} ${SAME_CHILD}, ${SAME_COLORS}. Entire body visible head to feet, the child in the lower middle of the picture, ${SCENE_TEXT[scene]}. Portrait 3:4, soft even lighting, storybook picture with detailed background with real perspective and depth.` +
-  avoid(NEGATIVE_COMMON, ...(SCENE_NEGATIVE[scene] ? [SCENE_NEGATIVE[scene]] : [])) +
-  CRITICAL;
+  [
+    IDENTITY_FROM_REFERENCE,
+    clothing(gender),
+    `POSE: ${SCENE_POSE[pose]}.`,
+    EXPRESSION,
+    `SCENE: ${subject(gender, band)} ${SCENE_TEXT[scene]}; the child in the lower middle of the picture, entire body visible head to feet; detailed background with real perspective and depth.`,
+    ...tail(gender, SCENE_NEGATIVE[scene]),
+  ].join(" ");
 
 // ── Gates ───────────────────────────────────────────────────────────────────
 /** A whole scene may be generated only for scene_mode "generated" and an
@@ -122,17 +166,14 @@ export const imagesEnabled = () =>
   process.env.AI_ENABLED === "true" &&
   process.env.AI_IMAGES_ENABLED === "true" &&
   !!process.env.FAL_KEY;
-/** One seed per book, derived from the session id, so every picture shares it. */
-export const seedFor = (sessionId: string) =>
-  createHash("sha256").update(sessionId).digest().readUInt32BE(0) % 2_147_483_647;
 
 // ── Providers ───────────────────────────────────────────────────────────────
 export type VisionKind = "child-on-white" | "scene";
 export type ImageDeps = {
   /** Text to image: the reference picture. */
-  createReference: (input: { prompt: string; seed: number; photo?: string }) => Promise<string>;
-  /** Image with reference (flux-pro/kontext): every later picture. */
-  withReference: (input: { prompt: string; seed: number; referenceUrl: string }) => Promise<string>;
+  createReference: (input: { prompt: string; photo?: string }) => Promise<string>;
+  /** Image with reference (gemini edit): every later picture. */
+  withReference: (input: { prompt: string; referenceUrl: string }) => Promise<string>;
   /** A dedicated background-removal model, never a threshold cut. */
   removeBackground: (url: string) => Promise<string>;
   /** Yes/no vision check of one picture. true = passes. */
@@ -162,12 +203,14 @@ const noImages = (lessons: readonly Lesson[]): BookImages => ({
 
 /** A book's pictures, all built around one reference child:
  * 1. the reference: the child standing on white (approved createAvatar prompt);
- * 2. every scene from that reference, with the same outfit text, seed and
- *    negative list; only the scene and the pose change;
+ * 2. every scene from that reference, all at once, with the same outfit text and
+ *    prohibitions; only the scene and the pose change;
  * 3. a yes/no check on every picture, one retry, then the drawn fallback (null);
  * 4. a consistency check across the book: a picture of a different child is
  *    redone once from the same reference, then falls back;
  * 5. the cover: the reference with its background removed.
+ * The reference goes to the model as it came out, never processed: a
+ * background-removed cut-out loses the face, so one is refused as a reference.
  * A composite item (a sacred place) never goes through the scene path. */
 export async function illustrateBook(
   input: {
@@ -181,7 +224,6 @@ export async function illustrateBook(
   deps: ImageDeps,
 ): Promise<BookImages> {
   const { gender, band, lessons } = input;
-  const seed = seedFor(input.sessionId);
   const attempt = async (make: () => Promise<string>, kind: VisionKind) => {
     for (let tries = 0; tries < 2; tries++) {
       try {
@@ -198,41 +240,43 @@ export async function illustrateBook(
     () =>
       deps.createReference(
         input.photo
-          ? { prompt: referencePrompt(gender, band) + PHOTO_LINE, seed, photo: input.photo }
-          : { prompt: referencePrompt(gender, band), seed },
+          ? { prompt: referencePrompt(gender, band, "standing", true), photo: input.photo }
+          : { prompt: referencePrompt(gender, band) },
       ),
     "child-on-white",
   );
   if (!reference) return noImages(lessons);
 
+  // Every cut-out made here is remembered; none may become the identity reference.
+  const cutouts = new Set<string>();
+  const cutOut = async (url: string) => {
+    const out = await deps.removeBackground(url);
+    cutouts.add(out);
+    return out;
+  };
+  const fromReference = (prompt: string) => {
+    if (cutouts.has(reference)) throw new Error("refused: a processed cut-out as the reference");
+    return deps.withReference({ prompt, referenceUrl: reference });
+  };
+
   const makeScene = async (lesson: Lesson): Promise<SceneImage> => {
     if (mayGenerateScene(lesson)) {
       const url = await attempt(
-        () =>
-          deps.withReference({
-            prompt: scenePrompt(gender, band, lesson.pose, lesson.scene),
-            seed,
-            referenceUrl: reference,
-          }),
+        () => fromReference(scenePrompt(gender, band, lesson.pose, lesson.scene)),
         "scene",
       );
       return url ? { mode: "generated", url } : null;
     }
     if (lesson.scene_mode !== "composite") return null;
     const child = await attempt(
-      () =>
-        deps.withReference({
-          prompt: childOnWhitePrompt(gender, band, lesson.pose),
-          seed,
-          referenceUrl: reference,
-        }),
+      () => fromReference(childOnWhitePrompt(gender, band, lesson.pose)),
       "child-on-white",
     );
     if (!child) return null;
     try {
       return {
         mode: "composite",
-        childUrl: await deps.removeBackground(child),
+        childUrl: await cutOut(child),
         background: lesson.scene,
       };
     } catch {
@@ -270,7 +314,7 @@ export async function illustrateBook(
 
   let cover: string | null = null;
   try {
-    cover = await deps.removeBackground(reference);
+    cover = await cutOut(reference);
   } catch {
     cover = null;
   }
@@ -282,7 +326,8 @@ export async function illustrateBook(
 // pages before the first real run.
 const FAL_REFERENCE_MODEL = () =>
   process.env.FAL_REFERENCE_MODEL || "fal-ai/flux-pro/kontext/text-to-image";
-const FAL_EDIT_MODEL = () => process.env.FAL_EDIT_MODEL || "fal-ai/flux-pro/kontext";
+const FAL_EDIT_MODEL = () =>
+  process.env.FAL_EDIT_MODEL || "fal-ai/gemini-3-pro-image-preview/edit";
 const FAL_BACKGROUND_MODEL = () => process.env.FAL_BACKGROUND_MODEL || "fal-ai/birefnet/v2";
 
 async function fal(model: string, input: Record<string, unknown>) {
@@ -292,9 +337,8 @@ async function fal(model: string, input: Record<string, unknown>) {
       Authorization: `Key ${process.env.FAL_KEY}`,
       "Content-Type": "application/json",
     },
-    // safety_tolerance per fal's kontext schema: "1" is the strictest.
-    body: JSON.stringify({ ...input, safety_tolerance: "1" }),
-    signal: AbortSignal.timeout(40000),
+    body: JSON.stringify(input),
+    signal: AbortSignal.timeout(90000),
   });
   if (!response.ok) throw new Error(`fal ${response.status}`);
   const data = (await response.json()) as {
@@ -321,19 +365,15 @@ const verdictSchema = z.object({
 const visionModel = () => process.env.AI_VISION_MODEL || "anthropic/claude-sonnet-5.5";
 
 export const falDeps: ImageDeps = {
-  createReference: ({ prompt, seed, photo }) =>
+  // The edit model needs an input image: with a photo, the photo; without one,
+  // the reference is drawn from text by the reference model (owner's option A).
+  createReference: ({ prompt, photo }) =>
     photo
-      ? // One photo: the same image-with-reference model as every later picture.
-        fal(FAL_EDIT_MODEL(), { prompt, seed, image_url: photo, aspect_ratio: "3:4", output_format: "png" })
-      : fal(FAL_REFERENCE_MODEL(), { prompt, seed, aspect_ratio: "3:4", output_format: "png" }),
-  withReference: ({ prompt, seed, referenceUrl }) =>
-    fal(FAL_EDIT_MODEL(), {
-      prompt,
-      seed,
-      image_url: referenceUrl,
-      aspect_ratio: "3:4",
-      output_format: "png",
-    }),
+      ? fal(FAL_EDIT_MODEL(), { prompt, image_urls: [photo], num_images: 1, aspect_ratio: "3:4" })
+      : fal(FAL_REFERENCE_MODEL(), { prompt, aspect_ratio: "3:4", output_format: "png" }),
+  // Four fields only; the reference as it came out of the model, unprocessed.
+  withReference: ({ prompt, referenceUrl }) =>
+    fal(FAL_EDIT_MODEL(), { prompt, image_urls: [referenceUrl], num_images: 1, aspect_ratio: "3:4" }),
   removeBackground: (url) => fal(FAL_BACKGROUND_MODEL(), { image_url: url }),
   async check(url, kind, gender) {
     const { output } = await generateText({

@@ -43,6 +43,11 @@ export type Lesson = {
   /** Page header art. image: a file in public/book, or null until it arrives;
    * the title is then drawn as text in the same place. */
   readonly top_layer: { readonly image: string | null; readonly title: string };
+  /** Owner's dua layer for the text page (logo, title and the dhikr drawn), a
+   * file in public/book, shown as is above everything; or null until a layer
+   * whose drawn text matches `text` is confirmed. `text` stays the source of
+   * truth for checks, text printing and screen readers. */
+  readonly dua_layer: string | null;
   readonly review: Review;
 };
 export type LessonResponse = {

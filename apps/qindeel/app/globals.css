@@ -2318,3 +2318,16 @@ details > summary::marker {
     padding: 9mm;
   }
 }
+
+/* Dua layer (owner's art: logo, title and the dhikr drawn) sits above every other layer. */
+.leaf-dua {
+  object-fit: fill;
+  z-index: 5;
+}
+/* Its drawn card ends at about 46% of the page; the source line sits just below. */
+.has-dua .leaf-body {
+  top: 47%;
+}
+.dua-source {
+  margin: 0;
+}

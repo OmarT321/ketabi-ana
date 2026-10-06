@@ -18,6 +18,7 @@
       "image": "top-waking.png",
       "title": "عند الاستيقاظ من النوم نقول:"
     },
+    "dua_layer": "dua-waking.png",
     "review": {
       "status": "pending",
       "reviewer": null,
@@ -43,6 +44,7 @@
       "image": null,
       "title": "عند لبس الثياب نقول:"
     },
+    "dua_layer": null,
     "review": {
       "status": "pending",
       "reviewer": null,
@@ -68,6 +70,7 @@
       "image": null,
       "title": "قبل الطعام نقول:"
     },
+    "dua_layer": null,
     "review": {
       "status": "pending",
       "reviewer": null,
@@ -93,6 +96,7 @@
       "image": null,
       "title": "بعد الطعام نقول:"
     },
+    "dua_layer": "dua-food-after.png",
     "review": {
       "status": "pending",
       "reviewer": null,

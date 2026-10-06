@@ -115,7 +115,14 @@ test("Kitabi Ana: question steps outside the book, three-item book, print and pr
   const item = adhkar.find((x) => x.text === shown);
   expect(item, "text matches the content file exactly").toBeTruthy();
   await expect(textPage.locator("h4")).toHaveText(item!.top_layer.title);
-  await expect(textPage.locator(".leaf-name")).toHaveText("ليان");
+  if (item!.dua_layer) {
+    // The owner's layer is on top, its alt is the pack's text, and the CSS card is off.
+    await expect(textPage.locator(".leaf-dua")).toHaveAttribute("alt", item!.text);
+    await expect(textPage.locator(".book-card")).toHaveCount(0);
+  } else await expect(textPage.locator(".book-card.sacred-text")).toHaveCount(1);
+  // The child's name is on the cover only, never on the inner pages.
+  await expect(reader.getByTestId("book-page").first()).not.toContainText("ليان");
+  await expect(reader.getByTestId("book-page").last()).not.toContainText("ليان");
   await expect(reader.locator(".quiz-card, .answer-options")).toHaveCount(0);
   await expect(meaningPage.locator("h4")).toHaveText("ماذا يعني؟");
   await expect(meaningPage.locator(".meaning-prose")).toHaveText(item!.meaning_older);

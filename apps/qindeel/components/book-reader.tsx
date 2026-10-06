@@ -377,32 +377,45 @@ function BookPage({
     item.kind === "closing"
       ? story.items.map((entry) => entry.lesson)
       : [item.entry.lesson];
+  const dua = item.kind === "text" ? item.entry.lesson.dua_layer : null;
   const top =
     item.kind === "text"
       ? item.entry.lesson.top_layer
       : { image: null, title: item.kind === "meaning" ? "ماذا يعني؟" : "ما تعلّمتَه اليوم" };
   return (
     <article
-      className={`paper-leaf page-${item.kind}`}
+      className={`paper-leaf page-${item.kind}${dua ? " has-dua" : ""}`}
       data-testid="book-page"
       aria-label={`الصفحة ${ar(number)}: ${top.title}`}
     >
       {/* Layer 1: background. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="leaf-layer" src={`${BOOK_ART}/page-bg.jpg`} alt="" />
-      <TopLayer image={top.image} title={top.title} />
-      {/* The name is written by the page under «حِصنُ», never burnt into an image. */}
-      <p className="leaf-name">{profile.name}</p>
-      {/* Layer 3: content. */}
+      {dua ? (
+        <h4 className="sr-only">{top.title}</h4>
+      ) : (
+        <TopLayer image={top.image} title={top.title} />
+      )}
+      {/* Inner pages carry «حِصنُ الطفل» as drawn; the child's name is on the cover only. */}
       <div className="leaf-body">
-        {item.kind === "text" && (
-          <>
-            <blockquote className="book-card sacred-text">
-              {item.entry.lesson.text}
-            </blockquote>
-            <p className="source-link">{sourceLine(item.entry.lesson)}</p>
-          </>
-        )}
+        {item.kind === "text" &&
+          (dua ? (
+            <>
+              {/* The pack's text stays the source of truth for checks, text
+                  printing and screen readers; the layer shows the drawn copy. */}
+              <blockquote className="sacred-text sr-only" aria-hidden="true">
+                {item.entry.lesson.text}
+              </blockquote>
+              <p className="source-link dua-source">{sourceLine(item.entry.lesson)}</p>
+            </>
+          ) : (
+            <>
+              <blockquote className="book-card sacred-text">
+                {item.entry.lesson.text}
+              </blockquote>
+              <p className="source-link">{sourceLine(item.entry.lesson)}</p>
+            </>
+          ))}
         {item.kind === "meaning" && (
           <>
             <div className="book-card meaning-prose">
@@ -437,6 +450,15 @@ function BookPage({
             image={images?.scenes[item.entry.lesson.id]}
           />
         </div>
+      )}
+      {dua && (
+        // Top layer: the owner's dua layer, as is, above everything.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          className="leaf-layer leaf-dua"
+          src={`${BOOK_ART}/${dua}`}
+          alt={item.kind === "text" ? item.entry.lesson.text : ""}
+        />
       )}
       <footer className="folio">
         <ReviewBadge lessons={lessons} />

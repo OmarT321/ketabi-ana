@@ -66,6 +66,7 @@ for (const l of lessons) {
   if (new Set(l.hint_chips).size !== l.hint_chips.length) note(l.id, "القاعدة 10", "رقاقات مكررة");
   if (!l.hint_chips_ready)
     note(l.id, "القاعدة 10", "الرقاقات منقولة من خيارات السؤال القديم وتنتظر رقاقات المالك؛ لا تُعرض حتى hint_chips_ready = true");
+  if (!l.dua_layer) note(l.id, "الأصول", "لا طبقة دعاء مربوطة؛ تظهر بطاقة CSS بنص الحزمة");
   if (!l.top_layer.image) note(l.id, "الأصول", `الطبقة العلوية لم تصل؛ يُرسم العنوان «${l.top_layer.title}» نصاً`);
   if (!SCENES.includes(l.scene)) note(l.id, "البنية", `المشهد «${l.scene}» غير موجود في scene.tsx`);
   if (!SCENE_MODES.includes(l.scene_mode)) note(l.id, "البنية", `scene_mode «${l.scene_mode}» غير معروف`);
@@ -107,6 +108,8 @@ const items = lessons.map((l, i) => `## ${i + 1}. ${l.situation} — \`${l.id}\`
 **الرقاقات${l.hint_chips_ready ? "" : " (لا تُعرض بعد)"}:** ${l.hint_chips.join(" · ")}
 
 **الطبقة العلوية:** ${l.top_layer.image ?? "عنوان مرسوم نصاً"} — «${l.top_layer.title}»
+
+**طبقة الدعاء:** ${l.dua_layer ?? "غير مربوطة"}
 `);
 
 const manualPath = "docs/content-review-notes.md";

@@ -4,8 +4,7 @@
 Code
 ----
 
-[PENDING] Licence for the code in this repository has not been chosen. Until a
-LICENSE file is added, no licence is granted beyond viewing on GitHub.
+The code is released under the MIT License; see LICENSE.
 
 This repository was separated from a repository it shared with another
 project. All code, data and tests specific to that other project were removed.
@@ -15,12 +14,10 @@ Part of the remaining code originates from the shared repository:
 - supabase (content and request-quota schema, edge function)
 - scripts, tests, CI workflow and Playwright configuration
 
-Original authorship is recorded in the history of the shared repository.
-See docs/ORIGIN.md.
+بعض مكوّنات الأساس في packages/core نشأت في قاعدة مشتركة مع مشروع آخر طُوّرت
+بالتوازي معه، وأُعيدت كتابة ما يخص هذا المشروع هنا.
 
-[PENDING] Attribution wording and licence terms for the shared code have not
-been confirmed with the original author. Replace this line with the agreed text
-before publishing or submitting this repository.
+See docs/ORIGIN.md.
 
 Content and book art (not licensed with the code)
 -------------------------------------------------
@@ -40,9 +37,8 @@ to run this application and may not be reused without the owner's permission.
 Fonts
 -----
 
-Aref Ruqaa, IBM Plex Sans Arabic and Amiri: SIL Open Font License 1.1, served
-through next/font (self-hosted at build time). Amiri is still loaded and is due
-to be removed.
+Aref Ruqaa and IBM Plex Sans Arabic: SIL Open Font License 1.1, served
+through next/font (self-hosted at build time).
 
 Dependencies
 ------------

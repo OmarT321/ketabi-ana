@@ -110,5 +110,6 @@ npx playwright install chromium && npm run test:e2e
 تفاصيل التراخيص في [NOTICE](NOTICE):
 
 - **نصوص الأذكار ورسوم الكتاب:** من منتج «حصن الطفل»، وحقوقها لمالكها، وليست مرخّصة مع الكود.
-- **الخطوط:** Aref Ruqaa وIBM Plex Sans Arabic وAmiri، برخصة SIL OFL 1.1.
+- **الكود:** برخصة MIT، انظر [LICENSE](LICENSE).
+- **الخطوط:** Aref Ruqaa وIBM Plex Sans Arabic، برخصة SIL OFL 1.1.
 - **المكتبات:** Next.js وReact وzod برخصة MIT، وlucide-react برخصة ISC، وحزمة ai برخصة Apache-2.0.

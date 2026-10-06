@@ -16,7 +16,7 @@ html {
 }
 body {
   --font-body: var(--font-sans), Arial, sans-serif;
-  --font-book: var(--font-amiri), Georgia, serif;
+  --font-book: var(--font-body);
   margin: 0;
   background: var(--cream);
   color: var(--ink);

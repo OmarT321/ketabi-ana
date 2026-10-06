@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans_Arabic, Amiri, Aref_Ruqaa } from "next/font/google";
+import { IBM_Plex_Sans_Arabic, Aref_Ruqaa } from "next/font/google";
 import "./globals.css";
 import { COPY } from "@/lib/copy";
 
@@ -7,12 +7,6 @@ const sans = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-sans",
-  display: "swap",
-});
-const amiri = Amiri({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "700"],
-  variable: "--font-amiri",
   display: "swap",
 });
 
@@ -39,7 +33,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={`${sans.variable} ${amiri.variable} ${display.variable}`}>
+      <body className={`${sans.variable} ${display.variable}`}>
         <a className="skip-link" href="#main">
           {COPY.site.skipLink}
         </a>
